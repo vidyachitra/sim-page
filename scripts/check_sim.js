@@ -55,6 +55,7 @@ SimCore.validate(def).forEach(m => err('contract: ' + m));
 if (errors.length) finish();
 
 const params = def.params || [];
+const TS = def.timeScale || 1;                 // sim seconds per real second; runs are scaled to match
 const defaults = () => Object.fromEntries(params.map(q => [q.key, q.value]));
 
 // ---------------------------------------------------------------- helpers
@@ -115,16 +116,16 @@ function run(p, seconds, label, trackDrift) {
 
 // ---------------------------------------------------------------- 1. defaults, 60 s
 const conservedOk = def.conserved && def.measure;
-const base = run(defaults(), 60, 'defaults', conservedOk);
+const base = run(defaults(), 60 * TS, 'defaults', conservedOk);
 if (base) {
-  note(`defaults: 60 s simulated, all values finite`);
+  note(`defaults: ${60 * TS} s simulated (60 s of viewing), all values finite`);
   if (conservedOk) {
     const tol = def.driftTolerance || 0.01;
     const pct = (base.maxDrift * 100).toFixed(3);
-    if (base.maxDrift > tol) err(`"${def.conserved}" drifted ${pct}% over 60 s (limit ${tol * 100}%). Use a symplectic integrator or smaller dt; defaults must be the conservative case.`);
-    else note(`"${def.conserved}" max drift ${pct}% over 60 s (limit ${tol * 100}%)`);
+    if (base.maxDrift > tol) err(`"${def.conserved}" drifted ${pct}% over the run (limit ${tol * 100}%). Use a symplectic integrator or smaller dt; defaults must be the conservative case.`);
+    else note(`"${def.conserved}" max drift ${pct}% over the run (limit ${tol * 100}%)`);
   }
-  const stepsPerFrame = (1 / 60) / def.dt * 2;         // at 2× speed
+  const stepsPerFrame = (1 / 60) * TS / def.dt * 2;    // at 2× speed
   const msPerFrame = base.usPerStep * stepsPerFrame / 1000;
   note(`physics cost ≈ ${msPerFrame.toFixed(2)} ms/frame at 2× (desktop Node; phones are ~3–10× slower)`);
   if (msPerFrame > 2) warn('physics may be too heavy for phones; increase dt or simplify step()');
@@ -138,10 +139,10 @@ if (params.length) {
     const p = defaults();
     params.forEach((q, i) => { p[q.key] = (mask >> i) & 1 ? q.max : q.min; });
     const label = 'extremes {' + params.map(q => `${q.key}=${p[q.key]}`).join(', ') + '}';
-    if (run(p, 10, label, false)) passed++;
+    if (run(p, 10 * TS, label, false)) passed++;
     else break;                                          // first failure is enough to act on
   }
-  if (passed === 1 << n) note(`all ${1 << n} min/max slider corners ran 10 s, finite${def.positions ? ' and in view' : ''}`);
+  if (passed === 1 << n) note(`all ${1 << n} min/max slider corners ran ${10 * TS} s, finite${def.positions ? ' and in view' : ''}`);
 }
 if (!def.positions) warn('no positions(): cannot check the scene stays in view');
 

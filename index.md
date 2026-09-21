@@ -13,3 +13,4 @@ Kumpulan simulasi pendamping praktikum dan perkuliahan. Pilih bidang di bilah sa
 ## Bidang
 
 - [Fisika Mekanika]({{ '/mekanika/' | relative_url }}) — kinematika, dinamika, elastisitas dan osilasi, metode numerik (Modul 2–10 praktikum).
+- [Elektronika]({{ '/elektronika/' | relative_url }}) — rangkaian DC, transien, arus bolak-balik, dan elektronika dasar.

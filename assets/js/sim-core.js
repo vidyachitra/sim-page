@@ -23,7 +23,7 @@
   const FONT_PX = { sm: 12, md: 14, lg: 16 };
   const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   const COLOR_NAMES = ['bg', 'fg', 'muted', 'grid', 'body', 'body-2', 'vector', 'vector-2',
-    'trail', 'ke', 'pe', 'total', 'accent'];
+    'trail', 'ke', 'pe', 'total', 'accent', 'current', 'voltage'];
   // Site language: Bahasa Indonesia. Every user-facing string of the runtime lives here.
   const UI = {
     play: 'Jalankan', pause: 'Jeda', reset: 'Ulang', speed: 'Kecepatan',
@@ -48,7 +48,9 @@
     if (!/^[a-z0-9-]+$/.test(def.id || '')) e.push('id must use lowercase letters, digits and hyphens');
     if (!def.title) e.push('title is required');
     if (!def.view || !isRange(def.view.x) || !isRange(def.view.y)) e.push('view.x and view.y must be [min, max] in meters');
-    if (!(def.dt > 0 && def.dt <= 0.01)) e.push('dt must be in (0, 0.01] s');
+    const ts = def.timeScale == null ? 1 : def.timeScale;
+    if (!(ts > 0 && ts <= 1)) e.push('timeScale must be in (0, 1] (sim seconds per real second)');
+    if (!(def.dt > 0 && def.dt <= 0.01 * ts)) e.push(`dt must be in (0, ${0.01 * ts}] s (≤ 0.01 × timeScale)`);
     if (def.aspect != null && !(def.aspect >= 0.5 && def.aspect <= 2.5)) e.push('aspect must be between 0.5 and 2.5');
     ['init', 'step', 'draw'].forEach(f => { if (typeof def[f] !== 'function') e.push(`${f}() is required`); });
 
@@ -85,7 +87,7 @@
         const n = `graphs[${i}]`;
         if (!g.title) e.push(`${n}.title is required`);
         if (typeof g.unit !== 'string') e.push(`${n}.unit must be a string ("" if dimensionless)`);
-        if (g.window != null && !(g.window >= 1 && g.window <= 120)) e.push(`${n}.window must be 1–120 s`);
+        if (g.window != null && !(g.window > 0 && g.window <= 120 * ts)) e.push(`${n}.window must be in (0, ${120 * ts}] s of sim time`);
         if (g.min != null && !isFinite(g.min)) e.push(`${n}.min must be a number`);
         if (g.max != null && !isFinite(g.max)) e.push(`${n}.max must be a number`);
         if (g.min != null && g.max != null && !(g.min < g.max)) e.push(`${n}: min must be < max`);
@@ -183,6 +185,106 @@
         pts.push([x2 - ux * lead, y2 - uy * lead], [x2, y2]);
         this.polyline(pts, color, w);
       },
+      // ---- Schematic symbols. Each is drawn centred on the segment (x1,y1)→(x2,y2) with straight
+      // leads to both ends, so a circuit is a list of segments between node coordinates.
+      // Label goes beside the symbol, on the normal's positive side (flip with side = -1).
+      _sym(x1, y1, x2, y2, len) {
+        const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1e-9;
+        const ux = dx / L, uy = dy / L, half = Math.min(len, L) / 2, mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        return { ux, uy, px: -uy, py: ux, mx, my, ax: mx - ux * half, ay: my - uy * half, bx: mx + ux * half, by: my + uy * half };
+      },
+      _leads(x1, y1, x2, y2, g, color = 'fg') {
+        this.line(x1, y1, g.ax, g.ay, color, 2); this.line(g.bx, g.by, x2, y2, color, 2);
+      },
+      _label(g, str, side = 1, off = 0.1, color = 'muted') {
+        if (!str) return;
+        // Beside a vertical component the label is left/right aligned so it clears the symbol.
+        const horizontal = Math.abs(g.px) > Math.abs(g.py);
+        const align = !horizontal ? 'center' : (g.px * side > 0 ? 'left' : 'right');
+        const o = horizontal ? off * 0.8 : off;
+        this.text(g.mx + g.px * o * side, g.my + g.py * o * side, str, color, 'sm', align);
+      },
+      wire(pts, color = 'fg', w = 2) { this.polyline(pts, color, w); },
+      node(x, y) { this.dot(x, y, 3.5, 'fg'); },
+      ground(x, y, size = 0.06) {
+        this.line(x, y, x, y - size * 0.6, 'fg', 2);
+        [1, 0.62, 0.25].forEach((f, i) => this.line(x - size * f, y - size * (0.6 + i * 0.25), x + size * f, y - size * (0.6 + i * 0.25), 'fg', 2));
+      },
+      resistor(x1, y1, x2, y2, label, side = 1, color = 'fg') {
+        const g = this._sym(x1, y1, x2, y2, 0.22), amp = 0.035, n = 6;
+        const pts = [[g.ax, g.ay]];
+        for (let i = 0; i < n; i++) {
+          const s = (i + 0.5) / n, k = i % 2 ? -1 : 1;
+          pts.push([g.ax + (g.bx - g.ax) * s + g.px * amp * k, g.ay + (g.by - g.ay) * s + g.py * amp * k]);
+        }
+        pts.push([g.bx, g.by]);
+        this.polyline(pts, color, 2); this._leads(x1, y1, x2, y2, g); this._label(g, label, side);
+      },
+      capacitor(x1, y1, x2, y2, label, side = 1, color = 'fg') {
+        const g = this._sym(x1, y1, x2, y2, 0.05), w = 0.07;
+        this.line(g.ax + g.px * w, g.ay + g.py * w, g.ax - g.px * w, g.ay - g.py * w, color, 2.5);
+        this.line(g.bx + g.px * w, g.by + g.py * w, g.bx - g.px * w, g.by - g.py * w, color, 2.5);
+        this._leads(x1, y1, x2, y2, g); this._label(g, label, side, 0.12);
+      },
+      inductor(x1, y1, x2, y2, label, side = 1, color = 'fg') {
+        const g = this._sym(x1, y1, x2, y2, 0.24), n = 4, r = 0.03, pts = [];
+        for (let i = 0; i < n; i++) for (let k = 0; k <= 8; k++) {
+          const a = Math.PI - Math.PI * k / 8, s = (i + 0.5 + Math.cos(a) * 0.5) / n;
+          pts.push([g.ax + (g.bx - g.ax) * s + g.px * r * Math.sin(a), g.ay + (g.by - g.ay) * s + g.py * r * Math.sin(a)]);
+        }
+        this.polyline(pts, color, 2); this._leads(x1, y1, x2, y2, g); this._label(g, label, side, 0.09);
+      },
+      // DC or AC source; the + terminal is at (x2, y2).
+      source(x1, y1, x2, y2, label, ac = false, side = 1) {
+        const g = this._sym(x1, y1, x2, y2, 0.16), r = 0.08;
+        this.circle(g.mx, g.my, r, 'bg'); this.circle(g.mx, g.my, r, 'fg', false, 2);
+        if (ac) {
+          const pts = [];
+          for (let k = 0; k <= 16; k++) { const s = k / 16 - 0.5; pts.push([g.mx + g.ux * s * 0.1 + g.px * Math.sin(k / 16 * 2 * Math.PI) * 0.03, g.my + g.uy * s * 0.1 + g.py * Math.sin(k / 16 * 2 * Math.PI) * 0.03]); }
+          this.polyline(pts, 'fg', 1.5);
+        } else {
+          this.text(g.mx + g.ux * 0.035, g.my + g.uy * 0.035, '+', 'fg', 'sm');
+          this.text(g.mx - g.ux * 0.035, g.my - g.uy * 0.035, '−', 'fg', 'sm');
+        }
+        this._leads(x1, y1, x2, y2, g); this._label(g, label, side, 0.14);
+      },
+      // Diode conducting from (x1,y1) to (x2,y2).
+      diode(x1, y1, x2, y2, label, side = 1, on = false) {
+        const g = this._sym(x1, y1, x2, y2, 0.1), w = 0.05;
+        this.polygon([[g.ax + g.px * w, g.ay + g.py * w], [g.ax - g.px * w, g.ay - g.py * w], [g.bx, g.by]], on ? 'current' : 'bg', 'fg');
+        this.line(g.bx + g.px * w, g.by + g.py * w, g.bx - g.px * w, g.by - g.py * w, 'fg', 2.5);
+        this._leads(x1, y1, x2, y2, g); this._label(g, label, side, 0.09);
+      },
+      switch(x1, y1, x2, y2, closed, label, side = 1) {
+        const g = this._sym(x1, y1, x2, y2, 0.14);
+        this.dot(g.ax, g.ay, 3, 'fg'); this.dot(g.bx, g.by, 3, 'fg');
+        const len = Math.hypot(g.bx - g.ax, g.by - g.ay), ang = closed ? 0 : 0.6;
+        const ex = g.ax + (g.ux * Math.cos(ang) + g.px * Math.sin(ang)) * len, ey = g.ay + (g.uy * Math.cos(ang) + g.py * Math.sin(ang)) * len;
+        this.line(g.ax, g.ay, ex, ey, 'fg', 2);
+        this._leads(x1, y1, x2, y2, g); this._label(g, label, side, 0.1);
+      },
+      // Op-amp triangle centred at (x, y) pointing +x. Returns terminal coordinates.
+      opamp(x, y, w = 0.32, h = 0.3) {
+        const inM = [x - w / 2, y + h / 4], inP = [x - w / 2, y - h / 4], out = [x + w / 2, y];
+        this.polygon([[x - w / 2, y - h / 2], [x - w / 2, y + h / 2], out], 'bg', 'fg');
+        this.text(x - w / 2 + 0.04, inM[1], '−', 'fg', 'sm'); this.text(x - w / 2 + 0.04, inP[1], '+', 'fg', 'sm');
+        return { inM, inP, out };
+      },
+      // Charge dots along a path; offset in metres shifts them (advance it by ∝ current each step).
+      flow(pts, offset, color = 'current', spacing = 0.09, rPx = 3) {
+        if (!pts || pts.length < 2) return;
+        const segs = [];
+        let total = 0;
+        for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); segs.push(l); total += l; }
+        if (total < 1e-9) return;
+        let s = ((offset % spacing) + spacing) % spacing;
+        for (; s < total; s += spacing) {
+          let acc = 0, i = 0;
+          while (i < segs.length - 1 && acc + segs[i] < s) { acc += segs[i]; i++; }
+          const f = (s - acc) / (segs[i] || 1);
+          this.dot(pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f, rPx, color);
+        }
+      },
       circle(x, y, rM, color = 'body', fill = true, w = 2) {
         ctx.beginPath(); ctx.arc(X(x), Y(y), rM * v.scale, 0, 2 * Math.PI);
         if (fill) { ctx.fillStyle = c(color); ctx.fill(); } else { pen(color, w); ctx.stroke(); }
@@ -274,10 +376,12 @@
     if (g.max == null) hi = Math.ceil(hi / ystep - snap) * ystep;
     const yd = tickDigits(ystep);
 
-    // x range: the last `window` seconds, growing from 0 until the window fills
+    // x range: the last `window` seconds, growing from 0 until the window fills.
+    // Axis labels use s, ms, µs or ns depending on the window length.
     const tNow = G.n ? G.t[(G.head - 1 + G.cap) % G.cap] : 0;
     const x1 = Math.max(G.window, tNow), x0 = x1 - G.window;
-    const xstep = niceStep(G.window, 5);
+    const tu = G.window >= 1 ? ['s', 1] : G.window >= 1e-3 ? ['ms', 1e3] : G.window >= 1e-6 ? ['µs', 1e6] : ['ns', 1e9];
+    const xstep = niceStep(G.window * tu[1], 5) / tu[1];
 
     ctx.font = fontFor('sm');
     const yLabelW = Math.max(ctx.measureText(hi.toFixed(yd)).width, ctx.measureText(lo.toFixed(yd)).width);
@@ -296,12 +400,13 @@
       ctx.fillText(v.toFixed(yd), L - 4, y);
     }
     ctx.textBaseline = 'top'; ctx.textAlign = 'center';
-    for (let t = Math.ceil(x0 / xstep) * xstep; t <= x1 + 1e-9; t += xstep) {
+    const xd = tickDigits(xstep * tu[1]);
+    for (let t = Math.ceil(x0 / xstep - 1e-9) * xstep; t <= x1 + xstep * 1e-6; t += xstep) {
       const x = Math.round(X(t)) + 0.5;
       ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke();
-      ctx.fillText(t.toFixed(tickDigits(xstep)), x, T + ph + 4);
+      ctx.fillText((t * tu[1]).toFixed(xd), x, T + ph + 4);
     }
-    ctx.textAlign = 'right'; ctx.fillText(UI.timeAxis, L + pw, T + ph + 4);
+    ctx.textAlign = 'right'; ctx.fillText(`t (${tu[0]})`, L + pw, T + ph + 4);
     if (lo < 0 && hi > 0) {                              // zero line
       const y = Math.round(Y(0)) + 0.5;
       ctx.strokeStyle = c('muted'); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
@@ -451,9 +556,10 @@
     });
 
     // Time graphs (optional per sim). One canvas each; all share the sim-time clock.
-    const graphDefs = def.graphs || [];
+    const tScale = def.timeScale || 1;               // sim seconds per real second (slow motion < 1)
+    const graphDefs = (def.graphs || []).map(g => Object.assign({ window: GRAPH_WINDOW * tScale }, g));
     const sampleDt = graphDefs.length
-      ? Math.min(...graphDefs.map(g => (g.window || GRAPH_WINDOW) / GRAPH_POINTS)) : Infinity;
+      ? Math.min(...graphDefs.map(g => g.window / GRAPH_POINTS)) : Infinity;
     const graphBox = el('div', 'sim-graphs');
     const graphs = graphDefs.map(g => {
       const G = makeGraph(g, sampleDt);
@@ -546,7 +652,7 @@
       const fdt = last == null ? 0 : Math.min((t - last) / 1000, MAX_FRAME_DT);
       last = t;
       if (running && !dragging) {
-        acc += fdt * speed;
+        acc += fdt * speed * tScale;
         let n = 0;
         try {
           while (acc >= def.dt && n < MAX_STEPS_PER_FRAME) {
