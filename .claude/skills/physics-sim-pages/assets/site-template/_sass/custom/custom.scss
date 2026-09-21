@@ -96,6 +96,25 @@
   accent-color: var(--sim-accent);
 }
 
+// Time graphs: 1 column on phones, 2 inside the Just the Docs content width.
+.sim-graphs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.sim-graph {
+  margin: 0;
+  aspect-ratio: 2.2;
+  background: var(--sim-bg);
+  border: 1px solid var(--sim-grid);
+  border-radius: var(--sim-radius);
+  overflow: hidden;
+
+  canvas { display: block; width: 100%; height: 100%; }
+}
+
 .sim-error {
   margin-top: 0.75rem;
   padding: 0.5rem 0.75rem;

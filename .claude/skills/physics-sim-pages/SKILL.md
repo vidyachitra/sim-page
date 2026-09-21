@@ -55,6 +55,10 @@ If the topic is clear, don't ask questions; state your assumptions in the reply.
       { key, label, symbol, unit, min, max, step, value, resets: true /* initial conditions */ }
     ],
     readouts: [ { key, label, unit, digits, color /* optional palette name */ } ],
+    graphs: [                        // optional, ≤ 4; scrolling plots of measure() keys vs time
+      { title: 'Energy', unit: 'J', min: 0 /* optional fixed bound; max too */, window: 10 /* s, default */,
+        series: [ { key, label, color /* palette name */, digits } ] }   // 1–4 series, same unit
+    ],
     init(p)              { return state; },          // pure
     step(state, p, dt)   { /* mutate state */ },      // pure
     measure(state, p)    { return { key: number }; }, // pure; required with readouts/conserved
@@ -71,7 +75,9 @@ If the topic is clear, don't ask questions; state your assumptions in the reply.
 
 **Pure** means no `document`, `window`, timers, storage or `Math.random()`. The checker runs these functions headless in Node, so any DOM access fails the check. Pure physics is also what makes Reset exactly reproducible. If you need randomness, seed a small PRNG from state.
 
-The core owns everything else: play/pause/reset/speed, sliders, readouts, resize, DPR, the loop, off-screen pause and touch handling. Sims never add buttons, `requestAnimationFrame`, event listeners or CSS.
+The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs, resize, DPR, the loop, off-screen pause and touch handling. Sims never add buttons, `requestAnimationFrame`, event listeners or CSS.
+
+**Graphs** are strip charts below the sliders, sampled from `measure()` in sim time (so Speed changes the pace, not the shape). The core owns axes, autoscaling and the scrolling window; history clears on Reset, on an initial-condition slider and when the object is dragged. Give each graph one unit: put KE, PE and E together, but θ, ω and α each get their own graph. Use `min: 0` for quantities that cannot go negative so the baseline is visible.
 
 ## Physics rules
 
@@ -108,7 +114,8 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, resize
   | `ke`, `pe`, `total` | energy |
 
 - **Draw with the helpers `d`**: `line`, `polyline`, `dot` (radius in px), `circle` (radius in m), `arrow` (with a short label like `v`, `F`, `mg`), `text`, `energyBars`. Positions are world meters, line widths are px (thin 1, normal 2, emphasis 3). They produce the same look across sims.
-- Draw **energy bars** (`d.energyBars`, scaled to the initial energy) whenever energy is part of the lesson.
+- Draw **energy bars** (`d.energyBars`, scaled to the initial energy) whenever energy is part of the lesson, and add an energy **graph** so the exchange over time is visible too.
+- Add **graphs** for the quantities the page text talks about (position, velocity, acceleration, current, …). Two to four graphs; more pushes the page too long on phones.
 - **Minimal canvas text**: labels only. Explanations belong on the page.
 - **Keep the view tight** around the motion; empty space shrinks the physics on phones.
 
@@ -154,6 +161,7 @@ Style: address the reader as "you", use present tense, give numbers with units, 
 
 **Automated** (`scripts/check_sim.js`):
 - contract valid and id matches the filename
+- every readout and graph key comes out of `measure()` and stays finite
 - 60 s at defaults stays finite, and conserved drift is within tolerance
 - every min/max slider corner runs 10 s, stays finite and stays in view
 - physics cost per frame is reported

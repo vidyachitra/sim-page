@@ -98,6 +98,10 @@ function run(p, seconds, label, trackDrift) {
         for (const r of def.readouts || []) {
           if (!(r.key in m)) { err(`measure() is missing readout key "${r.key}"`); return null; }
         }
+        for (const g of def.graphs || []) for (const r of g.series) {
+          if (!(r.key in m)) { err(`measure() is missing graph key "${r.key}" (graph "${g.title}")`); return null; }
+          if (!isFinite(m[r.key])) { err(`${label}: graph key "${r.key}" is non-finite at t=${t} s`); return null; }
+        }
         if (trackDrift) {
           const d = Math.abs(m[def.conserved] - E0) / Math.max(Math.abs(E0), 1e-12);
           if (d > maxDrift) maxDrift = d;

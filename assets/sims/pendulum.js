@@ -11,6 +11,7 @@
   const V_SCALE = 0.25;  // s; arrow length per m/s
 
   const bob = (s, p) => [p.L * Math.sin(s.theta), -p.L * Math.cos(s.theta)];
+  const alpha = (s, p) => -(p.g / p.L) * Math.sin(s.theta) - p.b * s.omega;   // rad/s²
   const energy = (s, p) => {
     const KE = 0.5 * M * p.L * p.L * s.omega * s.omega;
     const PE = M * p.g * p.L * (1 - Math.cos(s.theta));
@@ -35,9 +36,22 @@
 
     readouts: [
       { key: 'thetaDeg', label: 'θ', unit: '°', digits: 1 },
+      { key: 'omega', label: 'ω', unit: 'rad/s', digits: 2, color: 'vector2' },
+      { key: 'alpha', label: 'α', unit: 'rad/s²', digits: 2, color: 'vector' },
       { key: 'KE', label: 'KE', unit: 'J', digits: 3, color: 'ke' },
       { key: 'PE', label: 'PE', unit: 'J', digits: 3, color: 'pe' },
       { key: 'E', label: 'E', unit: 'J', digits: 3, color: 'total' }
+    ],
+
+    graphs: [
+      { title: 'Energy', unit: 'J', min: 0, series: [
+        { key: 'KE', label: 'KE', color: 'ke', digits: 3 },
+        { key: 'PE', label: 'PE', color: 'pe', digits: 3 },
+        { key: 'E', label: 'E', color: 'total', digits: 3 }
+      ] },
+      { title: 'Angle', unit: '°', series: [{ key: 'thetaDeg', label: 'θ', color: 'body', digits: 1 }] },
+      { title: 'Angular velocity', unit: 'rad/s', series: [{ key: 'omega', label: 'ω', color: 'vector2' }] },
+      { title: 'Angular acceleration', unit: 'rad/s²', series: [{ key: 'alpha', label: 'α', color: 'vector' }] }
     ],
 
     init(p) {
@@ -47,8 +61,8 @@
     },
 
     step(s, p, dt) {
-      s.omega += (-(p.g / p.L) * Math.sin(s.theta) - p.b * s.omega) * dt;  // velocity first
-      s.theta += s.omega * dt;                                             // then position
+      s.omega += alpha(s, p) * dt;     // velocity first
+      s.theta += s.omega * dt;         // then position
       if (++s.n % 4 === 0) {
         s.trail.push(bob(s, p));
         if (s.trail.length > 120) s.trail.shift();
@@ -58,7 +72,7 @@
     measure(s, p) {
       const e = energy(s, p);
       const deg = ((s.theta * 180 / Math.PI + 180) % 360 + 360) % 360 - 180;
-      return { thetaDeg: deg, KE: e.KE, PE: e.PE, E: e.E };
+      return { thetaDeg: deg, omega: s.omega, alpha: alpha(s, p), KE: e.KE, PE: e.PE, E: e.E };
     },
 
     positions(s, p) { return [bob(s, p)]; },

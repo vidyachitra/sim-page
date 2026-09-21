@@ -4,8 +4,8 @@
  * Sims never touch the DOM. They call SimCore.register(def) and supply pure
  * physics (init, step, measure) plus a draw function. This file owns:
  * layout, controls, resize + devicePixelRatio, the fixed-timestep loop,
- * pausing off-screen, reduced motion, pointer/touch drag, readouts and
- * drawing helpers.
+ * pausing off-screen, reduced motion, pointer/touch drag, readouts, time
+ * graphs and drawing helpers.
  *
  * Changing the def contract? Bump API_VERSION, then update SKILL.md and every sim.
  */
@@ -16,6 +16,9 @@
   const MAX_FRAME_DT = 0.1;         // s; longer gaps (tab switch, stall) are clamped
   const MAX_STEPS_PER_FRAME = 64;   // slow device → sim runs slower instead of going unstable
   const SPEEDS = [0.25, 0.5, 1, 2];
+  const GRAPH_WINDOW = 10;          // s of history shown by default
+  const GRAPH_POINTS = 300;         // samples across the window (≈ one per 2 px at typical widths)
+  const GRAPH_MAX = 4;              // graphs per sim; more pushes the controls off phone screens
   const HIT_PX = { mouse: 16, pen: 16, touch: 28 };
   const FONT_PX = { sm: 12, md: 14, lg: 16 };
   const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -67,8 +70,25 @@
       if (typeof r.unit !== 'string') e.push(`readouts[${i}].unit must be a string`);
     });
 
-    if ((readouts.length || def.conserved) && typeof def.measure !== 'function') {
-      e.push('measure() is required when readouts or conserved are set');
+    const graphs = def.graphs == null ? [] : def.graphs;
+    if (!Array.isArray(graphs)) e.push('graphs must be an array');
+    else {
+      if (graphs.length > GRAPH_MAX) e.push(`at most ${GRAPH_MAX} graphs (got ${graphs.length})`);
+      graphs.forEach((g, i) => {
+        const n = `graphs[${i}]`;
+        if (!g.title) e.push(`${n}.title is required`);
+        if (typeof g.unit !== 'string') e.push(`${n}.unit must be a string ("" if dimensionless)`);
+        if (g.window != null && !(g.window >= 1 && g.window <= 120)) e.push(`${n}.window must be 1–120 s`);
+        if (g.min != null && !isFinite(g.min)) e.push(`${n}.min must be a number`);
+        if (g.max != null && !isFinite(g.max)) e.push(`${n}.max must be a number`);
+        if (g.min != null && g.max != null && !(g.min < g.max)) e.push(`${n}: min must be < max`);
+        if (!Array.isArray(g.series) || !g.series.length || g.series.length > 4) e.push(`${n}.series must hold 1–4 entries`);
+        else g.series.forEach((s, j) => { if (!s.key || !s.label) e.push(`${n}.series[${j}] needs key and label`); });
+      });
+    }
+
+    if ((readouts.length || graphs.length || def.conserved) && typeof def.measure !== 'function') {
+      e.push('measure() is required when readouts, graphs or conserved are set');
     }
     if (def.conserved != null && typeof def.conserved !== 'string') e.push('conserved must be a measure() key');
     if (def.positions != null && typeof def.positions !== 'function') e.push('positions must be a function');
@@ -170,6 +190,131 @@
     };
   }
 
+  // ---------------------------------------------------------------- graphs
+  // A graph is a scrolling strip chart of measure() keys against sim time.
+  // Samples live in a ring buffer; the y range only grows (reset with the sim)
+  // so the axis does not jitter while the sim runs.
+  function niceStep(range, ticks) {
+    const raw = range / Math.max(1, ticks), mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const r = raw / mag;
+    return (r < 1.5 ? 1 : r < 3.5 ? 2 : r < 7.5 ? 5 : 10) * mag;
+  }
+  function tickDigits(step) { return Math.max(0, -Math.floor(Math.log10(step) + 1e-9)); }
+
+  function makeGraph(g, sampleDt) {
+    const cap = Math.max(2, Math.round((g.window || GRAPH_WINDOW) / sampleDt));
+    return {
+      def: g, window: g.window || GRAPH_WINDOW, cap,
+      t: new Float64Array(cap), y: g.series.map(() => new Float64Array(cap)),
+      head: 0, n: 0, lo: Infinity, hi: -Infinity,
+      canvas: null, ctx: null, w: 0, h: 0
+    };
+  }
+  function graphClear(G) { G.head = 0; G.n = 0; G.lo = Infinity; G.hi = -Infinity; }
+  function graphPush(G, t, m) {
+    const i = G.head;
+    G.t[i] = t;
+    G.def.series.forEach((s, k) => {
+      const v = Number(m[s.key]);
+      G.y[k][i] = v;
+      if (isFinite(v)) { if (v < G.lo) G.lo = v; if (v > G.hi) G.hi = v; }
+    });
+    G.head = (i + 1) % G.cap;
+    if (G.n < G.cap) G.n++;
+  }
+
+  function graphRender(G, colors, dpr, fontFor) {
+    const ctx = G.ctx, w = G.w, h = G.h;
+    if (!ctx || !w || !h) return;
+    const c = name => colors[name] || name;
+    const g = G.def;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = colors.bg; ctx.fillRect(0, 0, w, h);
+
+    // y range: fixed bounds win, otherwise the data's running extent padded to nice ticks
+    let lo = g.min != null ? g.min : G.lo, hi = g.max != null ? g.max : G.hi;
+    if (!isFinite(lo) || !isFinite(hi)) { lo = g.min != null ? g.min : -1; hi = g.max != null ? g.max : 1; }
+    if (hi - lo < 1e-9) { const pad = Math.max(1e-6, Math.abs(hi) * 0.1, 0.5); lo -= pad; hi += pad; }
+    const ystep = niceStep(hi - lo, 4);
+    const snap = 1e-3;                                   // ignore sub-pixel overshoot past a tick
+    if (g.min == null) lo = Math.floor(lo / ystep + snap) * ystep;
+    if (g.max == null) hi = Math.ceil(hi / ystep - snap) * ystep;
+    const yd = tickDigits(ystep);
+
+    // x range: the last `window` seconds, growing from 0 until the window fills
+    const tNow = G.n ? G.t[(G.head - 1 + G.cap) % G.cap] : 0;
+    const x1 = Math.max(G.window, tNow), x0 = x1 - G.window;
+    const xstep = niceStep(G.window, 5);
+
+    ctx.font = fontFor('sm');
+    const yLabelW = Math.max(ctx.measureText(hi.toFixed(yd)).width, ctx.measureText(lo.toFixed(yd)).width);
+    const L = Math.ceil(yLabelW) + 10, R = 8, T = 24, B = 18;
+    const pw = w - L - R, ph = h - T - B;
+    if (pw < 40 || ph < 30) return;
+    const X = t => L + (t - x0) / (x1 - x0) * pw;
+    const Y = v => T + (hi - v) / (hi - lo) * ph;
+
+    // grid + tick labels
+    ctx.lineWidth = 1; ctx.strokeStyle = c('grid'); ctx.fillStyle = c('muted');
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'right';
+    for (let v = lo; v <= hi + ystep * 1e-6; v += ystep) {
+      const y = Math.round(Y(v)) + 0.5;
+      ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
+      ctx.fillText(v.toFixed(yd), L - 4, y);
+    }
+    ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+    for (let t = Math.ceil(x0 / xstep) * xstep; t <= x1 + 1e-9; t += xstep) {
+      const x = Math.round(X(t)) + 0.5;
+      ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke();
+      ctx.fillText(t.toFixed(tickDigits(xstep)), x, T + ph + 4);
+    }
+    ctx.textAlign = 'right'; ctx.fillText('t (s)', L + pw, T + ph + 4);
+    if (lo < 0 && hi > 0) {                              // zero line
+      const y = Math.round(Y(0)) + 0.5;
+      ctx.strokeStyle = c('muted'); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
+    }
+    ctx.strokeStyle = c('muted');
+    ctx.strokeRect(L + 0.5, T + 0.5, pw, ph);
+
+    // title + legend with the latest value of each series
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.font = fontFor('sm');
+    ctx.fillStyle = c('fg');
+    const title = g.title + (g.unit ? ` (${g.unit})` : '');
+    ctx.fillText(title, L, T / 2);
+    let lx = L + ctx.measureText(title).width + 14;
+    const last = G.n ? (G.head - 1 + G.cap) % G.cap : -1;
+    g.series.forEach((s, k) => {
+      const v = last < 0 ? NaN : G.y[k][last];
+      const txt = s.label + ' ' + (isFinite(v) ? v.toFixed(s.digits == null ? 2 : s.digits) : '—');
+      const tw = ctx.measureText(txt).width;
+      if (lx + 10 + tw > w - R) return;                    // legend does not fit: skip the rest
+      ctx.fillStyle = c(s.color || 'body'); ctx.fillRect(lx, T / 2 - 1.5, 8, 3);
+      ctx.fillStyle = c('muted'); ctx.fillText(txt, lx + 11, T / 2);
+      lx += 11 + tw + 12;
+    });
+
+    // series
+    if (G.n < 2) return;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(L, T, pw, ph); ctx.clip();
+    ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    g.series.forEach((s, k) => {
+      ctx.strokeStyle = c(s.color || 'body');
+      ctx.beginPath();
+      let pen = false;
+      for (let j = 0; j < G.n; j++) {
+        const i = (G.head - G.n + j + G.cap) % G.cap;
+        const v = G.y[k][i];
+        if (!isFinite(v) || G.t[i] < x0) { pen = false; continue; }
+        const x = X(G.t[i]), y = Y(v);
+        if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; }
+      }
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
   // ---------------------------------------------------------------- helpers
   function el(tag, cls, text) {
     const e = document.createElement(tag);
@@ -205,6 +350,7 @@
     let running = false, dragging = false, looping = false;
     let onScreen = true, pageVisible = !document.hidden;
     let acc = 0, last = null, speed = 1, lastReadout = 0;
+    let simT = 0, lastSample = -Infinity;             // sim-time clock for the graphs
 
     host.classList.add('sim');
     host.textContent = '';
@@ -271,9 +417,28 @@
       controls.appendChild(wrap);
     });
 
+    // Time graphs (optional per sim). One canvas each; all share the sim-time clock.
+    const graphDefs = def.graphs || [];
+    const sampleDt = graphDefs.length
+      ? Math.min(...graphDefs.map(g => (g.window || GRAPH_WINDOW) / GRAPH_POINTS)) : Infinity;
+    const graphBox = el('div', 'sim-graphs');
+    const graphs = graphDefs.map(g => {
+      const G = makeGraph(g, sampleDt);
+      const fig = el('figure', 'sim-graph');
+      G.canvas = el('canvas');
+      G.canvas.setAttribute('role', 'img');
+      G.canvas.setAttribute('aria-label', `${g.title} against time`);
+      G.ctx = G.canvas.getContext('2d');
+      fig.appendChild(G.canvas);
+      graphBox.appendChild(fig);
+      G.fig = fig;
+      return G;
+    });
+
     host.append(stage, bar);
     if (readoutBox.childElementCount) host.appendChild(readoutBox);
     if (params.length) host.appendChild(controls);
+    if (graphs.length) host.appendChild(graphBox);
 
     // ---- behavior
     function fail(err) {
@@ -297,10 +462,25 @@
         def.readouts.forEach(r => { readoutEls[r.key].textContent = fmt(m[r.key], r.digits) + unitText(r.unit); });
       } catch (err) { fail(err); }
     }
-    function refresh() { render(); updateReadouts(); }
+    function renderGraphs() {
+      if (!colors || failed) return;
+      graphs.forEach(G => graphRender(G, colors, G.dpr || dpr, view ? view.font : () => `500 12px ${FONT_STACK}`));
+    }
+    // Record one graph sample per sampleDt of sim time. `force` restarts history at t = 0.
+    function sample(force) {
+      if (!graphs.length || failed) return;
+      if (force) { simT = 0; lastSample = -Infinity; graphs.forEach(graphClear); }
+      if (simT - lastSample < sampleDt * (1 - 1e-9)) return;
+      try {
+        const m = def.measure(state, p);
+        graphs.forEach(G => graphPush(G, simT, m));
+      } catch (err) { fail(err); return; }
+      lastSample = simT;
+    }
+    function refresh() { render(); updateReadouts(); renderGraphs(); }
     function restart() {
       try { state = def.init(p); } catch (err) { fail(err); return; }
-      acc = 0; refresh();
+      acc = 0; sample(true); refresh();
     }
     function resetAll() {
       p = Object.assign({}, defaults);
@@ -330,11 +510,15 @@
         acc += fdt * speed;
         let n = 0;
         try {
-          while (acc >= def.dt && n < MAX_STEPS_PER_FRAME) { def.step(state, p, def.dt); acc -= def.dt; n++; }
+          while (acc >= def.dt && n < MAX_STEPS_PER_FRAME) {
+            def.step(state, p, def.dt); acc -= def.dt; n++;
+            simT += def.dt; sample(false);
+          }
         } catch (err) { fail(err); looping = false; return; }
         if (n === MAX_STEPS_PER_FRAME) acc = 0;
       }
       render();
+      renderGraphs();
       if (t - lastReadout > 100) { updateReadouts(); lastReadout = t; }
       requestAnimationFrame(frame);
     }
@@ -350,6 +534,15 @@
       view = makeView(def, w, h, colors);
       drawer = makeDraw(ctx, view);
       render();                                   // state is untouched on resize
+    }
+    function resizeGraph(G) {
+      const w = G.fig.clientWidth, h = G.fig.clientHeight;
+      if (!w || !h) return;
+      const r = root.devicePixelRatio || 1;
+      G.w = w; G.h = h; G.dpr = r;
+      G.canvas.width = Math.round(w * r);
+      G.canvas.height = Math.round(h * r);
+      if (colors) graphRender(G, colors, r, view ? view.font : () => `500 12px ${FONT_STACK}`);
     }
 
     // ---- drag (optional per sim)
@@ -376,6 +569,7 @@
         canvas.setPointerCapture(e.pointerId);
         canvas.classList.add('is-dragging');
         def.drag.move(state, p, q.x, q.y);
+        acc = 0; graphs.forEach(graphClear);      // grabbing sets new initial conditions
         refresh(); kick();
       });
       canvas.addEventListener('pointermove', e => {
@@ -389,6 +583,7 @@
         dragging = false;
         canvas.classList.remove('is-dragging');
         if (def.drag.end) def.drag.end(state, p);
+        sample(true);                             // history restarts from the release point
         refresh();
       };
       canvas.addEventListener('pointerup', end);
@@ -401,7 +596,9 @@
     speedSel.addEventListener('change', () => { speed = parseFloat(speedSel.value); });
 
     new ResizeObserver(resize).observe(stage);
+    graphs.forEach(G => new ResizeObserver(() => resizeGraph(G)).observe(G.fig));
     root.addEventListener('resize', resize);      // catches DPR changes between monitors
+    root.addEventListener('resize', () => graphs.forEach(resizeGraph));
     if (root.matchMedia) {
       const mq = root.matchMedia('(prefers-color-scheme: dark)');
       if (mq.addEventListener) mq.addEventListener('change', resize);
@@ -413,6 +610,7 @@
 
     restart();
     resize();
+    graphs.forEach(resizeGraph);
     setRunning(!reduceMotion && def.autoplay !== false);
   }
 
@@ -435,5 +633,8 @@
     else go();
   }
 
-  root.SimCore = { API_VERSION, register, validate, rk4, _defs: defs };
+  root.SimCore = {
+    API_VERSION, register, validate, rk4, _defs: defs,
+    _graph: { make: makeGraph, push: graphPush, clear: graphClear, render: graphRender }   // headless tests
+  };
 })(typeof window !== 'undefined' ? window : globalThis);
