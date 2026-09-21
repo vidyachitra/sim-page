@@ -19,6 +19,14 @@
   --sim-radius: 6px;
 }
 
+// ------------------------------------------------------------------ theme
+// Just the Docs widens the sidebar to center the content on large screens.
+// Keep the sidebar at its natural width; spare space goes to the right.
+@include mq(lg) {
+  .side-bar { width: $nav-width; }
+  .side-bar + .main { margin-left: $nav-width; }
+}
+
 // ------------------------------------------------------------------ layout
 // Narrow: canvas, sliders, graphs stacked. Wide (container ≥ 40rem): graphs
 // beside the canvas, stretched to its height, sliders below both.
