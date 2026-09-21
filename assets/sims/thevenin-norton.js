@@ -9,7 +9,7 @@
  */
 (function () {
   const K = 0.008;
-  const X0 = [0, 1.55, 3.1];             // posisi tiap rangkaian
+  const X0 = [0, 1.9, 3.8];              // posisi tiap rangkaian
 
   const solve = p => {
     const Vth = p.Vs * p.R2 / (p.R1 + p.R2), Rth = p.R1 * p.R2 / (p.R1 + p.R2);
@@ -23,7 +23,7 @@
     id: 'thevenin-norton',
     title: 'Teorema Thevenin dan Norton',
     aspect: 16 / 9,
-    view: { x: [-0.3, 4.65], y: [-1.6, 1.2] },
+    view: { x: [-0.35, 5.5], y: [-1.72, 1.25] },
     dt: 1 / 240,
 
     params: [
@@ -51,7 +51,7 @@
       const s = solve(p);
       return { VL: s.VL, Vth: s.Vth, IL: s.IL * 1e3, IN: s.IN * 1e3, PL: s.PL * 1e3 };
     },
-    positions() { return [[0, 0], [4.3, 1]]; },
+    positions() { return [[0, 0], [5.0, 1]]; },
 
     draw(ctx, st, p, v, d) {
       const s = solve(p);
@@ -61,23 +61,22 @@
         d.node(x + 0.8, 1); d.node(x + 0.8, 0);
         d.text(x + 0.8, 1.12, 'A', 'muted', 'sm'); d.text(x + 0.8, -0.12, 'B', 'muted', 'sm');
         d.flow([[x + 0.8, 1], [x + 1.2, 1], [x + 1.2, 0], [x + 0.8, 0]], st.q);
-        d.text(x + 0.6, -0.4, name, 'fg', 'md');
-        d.text(x + 0.6, -0.55, `V_L = ${s.VL.toFixed(2)} V · I_L = ${(s.IL * 1e3).toFixed(1)} mA`, 'voltage', 'sm');
+        d.text(x + 0.6, -0.3, name, 'fg', 'md');
       };
 
       // Asli
       let x = X0[0];
-      d.source(x, 0, x, 1, `V_s`, false, -1);
-      d.resistor(x, 1, x + 0.8, 1, `R₁`, 1);
-      d.resistor(x + 0.45, 1, x + 0.45, 0, `R₂`, -1);
+      d.source(x, 0, x, 1, `${p.Vs.toFixed(1)} V`, false, -1);
+      d.resistor(x, 1, x + 0.8, 1, `R₁ ${p.R1} Ω`, 1);
+      d.resistor(x + 0.45, 1, x + 0.45, 0, `R₂ ${p.R2}`, -1);
       d.wire([[x, 0], [x + 0.8, 0]]);
       d.node(x + 0.45, 1); d.node(x + 0.45, 0);
       load(x, 'Asli');
 
       // Thevenin
       x = X0[1];
-      d.source(x, 0, x, 1, `V_th = ${s.Vth.toFixed(2)} V`, false, -1);
-      d.resistor(x, 1, x + 0.8, 1, `R_th = ${s.Rth.toFixed(0)} Ω`, 1);
+      d.source(x, 0, x, 1, 'V_th', false, -1);
+      d.resistor(x, 1, x + 0.8, 1, `R_th ${s.Rth.toFixed(0)} Ω`, 1);
       d.wire([[x, 0], [x + 0.8, 0]]);
       load(x, 'Setara Thevenin');
 
@@ -86,14 +85,17 @@
       d.wire([[x, 0], [x, 0.42]]); d.wire([[x, 0.58], [x, 1]]);
       d.circle(x, 0.5, 0.08, 'bg'); d.circle(x, 0.5, 0.08, 'fg', false, 2);
       d.arrow(x, 0.44, 0, 0.12, 'fg');
-      d.text(x - 0.12, 0.5, `I_N = ${(s.IN * 1e3).toFixed(1)} mA`, 'muted', 'sm', 'right');
+      d.text(x - 0.12, 0.5, 'I_N', 'muted', 'sm', 'right');
       d.wire([[x, 1], [x + 0.8, 1]]); d.wire([[x, 0], [x + 0.8, 0]]);
-      d.resistor(x + 0.45, 1, x + 0.45, 0, `R_N = ${s.Rth.toFixed(0)} Ω`, 1);
+      d.resistor(x + 0.45, 1, x + 0.45, 0, `R_N ${s.Rth.toFixed(0)}`, 1);
       d.node(x + 0.45, 1); d.node(x + 0.45, 0);
       load(x, 'Setara Norton');
 
+      d.text(2.6, -0.5, `V_th = ${s.Vth.toFixed(2)} V · R_th = R_N = ${s.Rth.toFixed(0)} Ω · I_N = ${(s.IN * 1e3).toFixed(1)} mA`, 'muted', 'sm');
+      d.text(2.6, -0.68, `ketiganya: V_L = ${s.VL.toFixed(2)} V · I_L = ${(s.IL * 1e3).toFixed(1)} mA · P_L = ${(s.PL * 1e3).toFixed(1)} mW`, 'voltage', 'md');
+
       // Sisipan: P_L terhadap R_L, maksimum di R_L = R_th
-      const ox = 0.2, oy = -1.45, W = 4.0, H = 0.62, RLmax = 1000;
+      const ox = 0.3, oy = -1.6, W = 4.8, H = 0.6, RLmax = 1000;
       const PLof = RL => { const VL = s.Vth * RL / (s.Rth + RL); return VL * VL / RL; };
       const Pmax = PLof(s.Rth) || 1e-9;
       d.line(ox, oy, ox + W, oy, 'muted', 1); d.line(ox, oy, ox, oy + H, 'muted', 1);
@@ -102,8 +104,8 @@
       d.polyline(pts, 'body2', 2);
       d.dot(ox + W * p.RL / RLmax, oy + H * s.PL / Pmax, 5, 'current');
       d.line(ox + W * s.Rth / RLmax, oy, ox + W * s.Rth / RLmax, oy + H, 'grid', 1);
-      d.text(ox + W * s.Rth / RLmax, oy + H + 0.08, `R_L = R_th = ${s.Rth.toFixed(0)} Ω → P maks ${(Pmax * 1e3).toFixed(1)} mW`, 'muted', 'sm');
-      d.text(ox + W, oy - 0.1, 'R_L (0 … 1000 Ω)', 'muted', 'sm', 'right');
+      d.text(ox + W * s.Rth / RLmax, oy + H + 0.1, `P_L maks ${(Pmax * 1e3).toFixed(1)} mW di R_L = R_th = ${s.Rth.toFixed(0)} Ω`, 'muted', 'sm', s.Rth / RLmax < 0.3 ? 'left' : 'center');
+      d.text(ox + W, oy - 0.09, 'R_L (0 … 1000 Ω)', 'muted', 'sm', 'right');
       d.text(ox - 0.05, oy + H, 'P_L', 'muted', 'sm', 'right');
     }
   });

@@ -52,7 +52,9 @@ If the topic is clear, don't ask questions; state your assumptions in the reply.
     title: 'Projectile motion',      // canvas aria-label
     aspect: 16 / 9,                  // 16/9 wide scenes · 4/3 default · 1 for orbits/rotation
     view: { x: [xmin, xmax], y: [ymin, ymax] },   // meters, y up; fitted to canvas, aspect kept
-    dt: 1 / 240,                     // fixed physics step, s (≤ 0.01)
+    dt: 1 / 240,                     // fixed physics step, s (≤ 0.01 × timeScale)
+    timeScale: 1,                    // optional; sim seconds per real second. 1e-3 plays a 1 ms circuit transient in 1 s;
+                                     // graph axes stay in real units (s, ms, µs, ns chosen automatically)
     conserved: 'E',                  // optional: measure() key checked for drift at defaults
     driftTolerance: 0.01,            // optional, default 1 %
     autoplay: false,                 // optional; default false: the sim waits for Jalankan. true never applies under reduced motion
@@ -61,7 +63,7 @@ If the topic is clear, don't ask questions; state your assumptions in the reply.
     ],
     readouts: [ { key, label, unit, digits, color /* optional palette name */ } ],
     graphs: [                        // optional, ≤ 4; scrolling plots of measure() keys vs time
-      { title: 'Energy', unit: 'J', min: 0 /* optional fixed bound; max too */, window: 10 /* s, default */,
+      { title: 'Energy', unit: 'J', min: 0 /* optional fixed bound; max too */, window: 10 /* sim s; default 10 × timeScale */,
         series: [ { key, label, color /* palette name */, digits } ] }   // 1–4 series, same unit
     ],
     init(p)              { return state; },          // pure
@@ -89,7 +91,8 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
 - **SI internally.** Convert display units (degrees, cm, µF) only in `init`, `measure` and labels.
 - **Integrator by system type.** Never use explicit Euler: it adds energy every step, so orbits spiral out and pendulums grow.
   - For **conservative** systems (pendulum, spring, orbit, charge in a B-field), use semi-implicit Euler (update velocity, then position with the new velocity) or velocity Verlet. These keep energy bounded over long runs. Semi-implicit Euler lets energy wobble by ≈ ω·dt/2; for stiff systems (ω ≳ 10 rad/s) use velocity Verlet to stay under the 1 % drift check.
-  - For **damped, driven or non-conservative** systems, and for first-order ODEs such as circuits, use `SimCore.rk4(f, t, yArray, dt)`. `f` must return a new array.
+  - For **damped, driven or non-conservative** systems, and for first-order ODEs such as circuits, use `SimCore.rk4(f, t, yArray, dt)`. `f` must return a new array. RK4 is stable only for dt ≲ 2.8 × the fastest time constant, so for first-order pieces whose τ can shrink below dt (RC with small R, RL with a large "open switch" resistance, diode conduction) use the **exact exponential update** `x ← x∞ + (x − x∞)·e^{−dt/τ}` with inputs held over the step, or sub-step RK4 to the smallest τ (see `jalur-sinyal`).
+  - **Circuits:** real component values (kΩ, µF, mH, kHz) with `timeScale` chosen so the interesting interval (τ, a period, ringing) spans about 1–10 s of viewing; say so in the assumptions ("tampilan diperlambat 1000×"). Events narrower than a graph sample (inductive kick, inrush) get a peak-hold series (decaying envelope) next to the instantaneous value, labelled as such.
   - A **closed-form** solution is fine when it is exact and simple. Give the parameters it depends on `resets: true`.
 - **Defaults are the conservative case** when `conserved` is set, because the checker measures drift at defaults. Put damping and driving on sliders that default to 0.
 - **Assumptions comment** at the top of the file, mirrored in the page's assumptions callout.
@@ -119,7 +122,8 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
   | `trail` | path history |
   | `ke`, `pe`, `total` | energy |
 
-- **Draw with the helpers `d`**: `line`, `polyline`, `dot` (radius in px), `circle` (radius in m), `arrow` (with a short label like `v`, `F`, `mg`), `text`, `polygon` (filled, optional outline), `rect` (bottom-left corner, w × h in m), `spring` (coil between two points), `energyBars`. Positions are world meters, line widths are px (thin 1, normal 2, emphasis 3). They produce the same look across sims.
+- **Draw with the helpers `d`**: `line`, `polyline`, `dot` (radius in px), `circle` (radius in m), `arrow` (with a short label like `v`, `F`, `mg`), `text`, `polygon` (filled, optional outline), `rect` (bottom-left corner, w × h in m), `spring` (coil between two points), `energyBars`.
+- **Circuits** use the schematic helpers, each drawn centred on a segment with leads to both ends: `resistor`, `capacitor`, `inductor`, `source(…, label, ac)` (+ at the second point), `diode` (conducts first → second point; `on` fills it), `switch(…, closed)`, `opamp(x, y)` (returns `inM`, `inP`, `out`), `ground`, `node`, `wire`. The `side` argument puts the label right of a vertical / above a horizontal component (+1) or left / below (−1). Animate current with `flow(path, offset)`: keep one offset per branch in state and advance it by `i · K · dt / timeScale` so dot speed is proportional to current in viewing time. Colors `current` (dots, i traces) and `voltage` (v traces). Static DC circuits still get graphs (they record slider changes) and, where the lesson has a characteristic curve, an inset plot (P_L vs R_L, V–I line, Bode). Positions are world meters, line widths are px (thin 1, normal 2, emphasis 3). They produce the same look across sims.
 - Show **energy as a graph** (KE, PE, E) whenever energy is part of the lesson. `d.energyBars` still exists for sims that want an on-canvas summary, but prefer the graph.
 - Add **graphs** for the quantities the page text talks about (position, velocity, acceleration, current, …). Two to four graphs; more pushes the page too long on phones.
 - **Minimal canvas text**: labels only. Explanations belong on the page.
@@ -171,8 +175,8 @@ Style: Bahasa Indonesia, present tense, numbers with units (decimal comma), inli
 **Automated** (`scripts/check_sim.js`):
 - contract valid and id matches the filename
 - page front matter has layout, title, parent, nav_order and (inside a section) grand_parent
-- every readout and graph key comes out of `measure()` and stays finite
-- 60 s at defaults stays finite, and conserved drift is within tolerance
+- every readout and graph key comes out of `measure()` and stays finite (state must hold finite numbers only: no `Infinity` sentinels)
+- 60 s of viewing (60 × timeScale sim seconds) at defaults stays finite, and conserved drift is within tolerance
 - every min/max slider corner runs 10 s, stays finite and stays in view
 - physics cost per frame is reported
 - page structure and word limits are met

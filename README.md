@@ -16,8 +16,9 @@ and a shared canvas runtime (`assets/js/sim-core.js`).
 | `.claude/skills/physics-sim-pages/` | Claude Code skill used to build new sims |
 
 Site language is Bahasa Indonesia (see the skill). Sims start paused; press Jalankan.
-Section `mekanika/`: kereta-lintasan, jatuh-bebas, hukum-newton,
-gesekan, hukum-hooke, bandul-sederhana, pegas-massa, euler-rk4 — one per practicum module.
+Section `mekanika/` (8 sims, one per practicum module) and `elektronika/` (17 sims: DC,
+transient, AC, devices). Circuit sims use real component values with `timeScale`
+slow motion; graph axes show real time.
 
 ## Check a sim
 

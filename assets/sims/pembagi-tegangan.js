@@ -65,7 +65,7 @@
       d.resistor(0.3, 1, 0.9, 1, `R₁ = ${p.R1.toFixed(1)} kΩ`, 1);
       d.resistor(0.9, 1, 0.9, 0, `R₂ = ${p.R2.toFixed(1)} kΩ`, -1);
       d.wire([[0.9, 1], [1.5, 1]]);
-      d.resistor(1.5, 1, 1.5, 0, `R_L = ${p.RL.toFixed(1)} kΩ`, -1);
+      d.resistor(1.5, 1, 1.5, 0, `R_L = ${p.RL.toFixed(1)} kΩ`, 1);
       d.wire([[1.5, 0], [0, 0]]);
       d.ground(0.45, 0);
       d.node(0.9, 1); d.node(0.9, 0); d.node(1.5, 0);

@@ -198,11 +198,14 @@
       },
       _label(g, str, side = 1, off = 0.1, color = 'muted') {
         if (!str) return;
-        // Beside a vertical component the label is left/right aligned so it clears the symbol.
-        const horizontal = Math.abs(g.px) > Math.abs(g.py);
-        const align = !horizontal ? 'center' : (g.px * side > 0 ? 'left' : 'right');
+        // side = +1 puts the label right of a vertical component / above a horizontal one; −1 left / below,
+        // whichever way the segment was drawn. Beside a vertical component the text is left/right aligned.
+        const horizontal = Math.abs(g.px) > Math.abs(g.py);           // normal is horizontal → component vertical
+        const flip = horizontal ? g.px < 0 : g.py < 0;
+        const nx = flip ? -g.px : g.px, ny = flip ? -g.py : g.py;
+        const align = !horizontal ? 'center' : (side > 0 ? 'left' : 'right');
         const o = horizontal ? off * 0.8 : off;
-        this.text(g.mx + g.px * o * side, g.my + g.py * o * side, str, color, 'sm', align);
+        this.text(g.mx + nx * o * side, g.my + ny * o * side, str, color, 'sm', align);
       },
       wire(pts, color = 'fg', w = 2) { this.polyline(pts, color, w); },
       node(x, y) { this.dot(x, y, 3.5, 'fg'); },
