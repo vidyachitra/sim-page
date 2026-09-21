@@ -1,0 +1,6 @@
+_site/
+.jekyll-cache/
+.sass-cache/
+
+# Original skill archive (installed under .claude/skills/)
+physics-sim-pages.skill

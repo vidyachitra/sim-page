@@ -1,0 +1,35 @@
+title: Physics Sims
+description: Interactive simulations for understanding physics.
+
+# Pin the theme so updates never change pages silently.
+# Check https://github.com/just-the-docs/just-the-docs/releases for the latest tag before first deploy.
+remote_theme: just-the-docs/just-the-docs@v0.10.0
+plugins:
+  - jekyll-remote-theme
+
+# Project sites (username.github.io/repo): GitHub Pages usually sets this;
+# set it explicitly for local preview, e.g. "/physics-sims".
+baseurl: ""
+
+color_scheme: light
+search_enabled: true
+heading_anchors: true
+
+# kramdown turns $$...$$ into \( \) / \[ \], which KaTeX auto-render picks up.
+kramdown:
+  math_engine: mathjax
+
+callouts:
+  note:
+    title: What to notice
+    color: blue
+  try:
+    title: Try this
+    color: green
+  assume:
+    title: Model assumptions
+    color: grey-lt
+
+exclude:
+  - README.md
+  - scripts/

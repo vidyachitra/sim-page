@@ -1,0 +1,107 @@
+// ------------------------------------------------------------------
+// Sim palette — the ONLY place sim colors are defined.
+// Okabe–Ito based, colorblind-safe. Sims use names, never hex values.
+// ------------------------------------------------------------------
+:root {
+  --sim-bg: #ffffff;
+  --sim-fg: #27262b;        // rods, supports, axes
+  --sim-muted: #5c5962;     // labels
+  --sim-grid: #e6e1e8;
+  --sim-body: #0072b2;      // main object
+  --sim-body-2: #cc79a7;    // second object
+  --sim-vector: #d55e00;    // force, acceleration
+  --sim-vector-2: #009e73;  // velocity
+  --sim-trail: rgba(0, 114, 178, 0.3);
+  --sim-ke: #e69f00;
+  --sim-pe: #56b4e9;
+  --sim-total: #27262b;
+  --sim-accent: #7253ed;    // matches Just the Docs purple
+  --sim-radius: 6px;
+}
+
+// ------------------------------------------------------------------ layout
+.sim { margin: 1.5rem 0; }
+
+.sim-stage {
+  position: relative;
+  width: 100%;
+  background: var(--sim-bg);
+  border: 1px solid var(--sim-grid);
+  border-radius: var(--sim-radius);
+  overflow: hidden;
+}
+
+.sim-canvas { display: block; width: 100%; height: 100%; }
+.sim-canvas.can-drag { cursor: grab; }
+.sim-canvas.is-dragging { cursor: grabbing; }
+
+.sim-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+
+  .btn { min-height: 44px; min-width: 5.5rem; }
+}
+
+.sim-speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  font-size: 0.875rem;
+
+  select { min-height: 44px; padding: 0 0.5rem; font: inherit; }
+}
+
+.sim-readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sim-readout {
+  border-left: 3px solid var(--sim-fg);
+  padding-left: 0.5rem;
+
+  .sim-readout-label { color: var(--sim-muted); margin-right: 0.35rem; }
+}
+
+// 1 column on phones, up to 3 inside the Just the Docs content width.
+.sim-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.sim-param-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.sim-param-symbol { font-style: italic; color: var(--sim-muted); }
+.sim-param-value { font-variant-numeric: tabular-nums; }
+
+.sim-param input[type="range"] {
+  width: 100%;
+  min-height: 44px;             // touch target
+  margin: 0;
+  accent-color: var(--sim-accent);
+}
+
+.sim-error {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--sim-vector);
+  font-size: 0.875rem;
+}
+
+// Long equations scroll instead of widening the page on phones.
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.25rem 0; }
