@@ -2,6 +2,7 @@
 layout: default
 title: Jatuh Bebas
 parent: Kinematika
+grand_parent: Fisika Mekanika
 nav_order: 2
 ---
 

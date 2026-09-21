@@ -2,6 +2,7 @@
 layout: default
 title: Hukum Hooke dan Susunan Pegas
 parent: Elastisitas dan Osilasi
+grand_parent: Fisika Mekanika
 nav_order: 1
 ---
 

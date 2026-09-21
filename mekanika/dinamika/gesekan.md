@@ -2,6 +2,7 @@
 layout: default
 title: Gesekan Statis dan Kinetis
 parent: Dinamika
+grand_parent: Fisika Mekanika
 nav_order: 2
 ---
 

@@ -154,6 +154,9 @@ if (pagePath) {
   // GitHub Pages applies no layout by itself: without this line the page is bare HTML.
   if (!/^layout:\s*default\s*$/m.test(fm)) err('page: front matter must include "layout: default"');
   for (const k of ['title', 'parent', 'nav_order']) if (!new RegExp('^' + k + ':', 'm').test(fm)) err('page: front matter missing "' + k + ':"');
+  // Pages live at <section>/<category>/<id>.md; Just the Docs needs grand_parent for the third level.
+  const depth = path.resolve(pagePath).split(path.sep).length - path.resolve(corePath, '..', '..', '..').split(path.sep).length;
+  if (depth >= 3 && !/^grand_parent:/m.test(fm)) err('page: front matter missing "grand_parent:" (page is inside a section folder)');
   const words = t => t.replace(/\$\$[\s\S]*?\$\$/g, 'X').replace(/[*_`>#-]/g, ' ').trim().split(/\s+/).filter(Boolean).length;
   const lines = body.split('\n');
 

@@ -2,6 +2,7 @@
 layout: default
 title: Sistem Pegas–Massa
 parent: Elastisitas dan Osilasi
+grand_parent: Fisika Mekanika
 nav_order: 3
 ---
 

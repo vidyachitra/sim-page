@@ -650,7 +650,7 @@
     restart();
     resize();
     graphs.forEach(resizeGraph);
-    setRunning(!reduceMotion && def.autoplay !== false);
+    setRunning(!reduceMotion && def.autoplay === true);   // default: wait for Jalankan
   }
 
   // ---------------------------------------------------------------- register

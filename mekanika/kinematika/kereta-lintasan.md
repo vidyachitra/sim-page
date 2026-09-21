@@ -2,6 +2,7 @@
 layout: default
 title: Kereta pada Lintasan
 parent: Kinematika
+grand_parent: Fisika Mekanika
 nav_order: 1
 ---
 

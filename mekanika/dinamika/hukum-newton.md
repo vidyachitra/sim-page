@@ -2,6 +2,7 @@
 layout: default
 title: Hukum II Newton
 parent: Dinamika
+grand_parent: Fisika Mekanika
 nav_order: 1
 ---
 

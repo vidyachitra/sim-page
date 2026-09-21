@@ -7,6 +7,8 @@ description: Build interactive physics simulations (applets) for a GitHub Pages 
 
 A GitHub Pages site built with **Jekyll + Just the Docs**. Every sim runs on one shared runtime (`sim-core.js`), so layout, controls, colors and responsiveness are identical everywhere. Your main job is the simulation. The user edits the Markdown text afterward.
 
+**Site structure: section → category → sim.** A section is a subject or course (`mekanika/` = Fisika Mekanika); categories sit inside it (`mekanika/kinematika/`); sim pages inside those. Just the Docs needs `parent` on a category and `parent` + `grand_parent` on a sim page. New subjects are new top-level folders with their own `index.md` (`has_children: true`); add a line for them in the root `index.md` under "Bidang". Sim ids stay globally unique because all sims live flat in `assets/sims/`.
+
 **Language: Bahasa Indonesia**, light theme only. Page text, slider labels, graph titles, canvas labels and the assumptions comment are Indonesian; symbols stay as in the practicum module (`θ`, `m_g`, `EK`/`EP` for kinetic/potential energy, decimal comma in prose: "0,60 m"). Ids and keys stay lowercase-hyphen ASCII (`jatuh-bebas`). The runtime's own strings (Jalankan/Jeda/Ulang/Kecepatan) live in the `UI` table in `sim-core.js`.
 
 ## Ownership
@@ -16,7 +18,7 @@ The user edits pages by hand, so regenerating them would destroy their work.
 | File | Owner |
 |---|---|
 | `assets/sims/<id>.js` | You |
-| `<category>/<id>.md` | You create it **once** as a starter; after that the user owns it. Never overwrite an existing page. If a sim change breaks the text (renamed symbol, removed slider), tell the user which lines to update. |
+| `<section>/<category>/<id>.md` | You create it **once** as a starter; after that the user owns it. Never overwrite an existing page. If a sim change breaks the text (renamed symbol, removed slider), tell the user which lines to update. |
 | `assets/js/sim-core.js`, `_includes/*`, `_sass/custom/*.scss`, `_config.yml` | Shared. Change only when asked. A change to the sim contract means bumping `API_VERSION` and updating every sim. |
 
 ## Workflow
@@ -28,12 +30,12 @@ The user edits pages by hand, so regenerating them would destroy their work.
 4. Local preview (optional): with Ruby installed, `bundle install` then `bundle exec jekyll serve`. The `Gemfile` uses the `github-pages` gem, so the local build matches GitHub's Jekyll 3.10 exactly. Every page must carry `layout: default`; nothing applies it automatically.
 
 ### New sim
-1. **Category.** Use an existing parent page or create `<category>/index.md` (copy `osilasi/index.md`: `layout: default`, title, `has_children: true`, one line of description).
+1. **Section and category.** Use an existing section (`mekanika/`) or create `<section>/index.md` (copy `mekanika/index.md`). Use an existing category or create `<section>/<category>/index.md` (copy `mekanika/osilasi/index.md`: `layout: default`, title, `parent`, `has_children: true`, one line of description).
 2. **Sim file.** Write `assets/sims/<id>.js` following the contract below. Read `assets/site-template/assets/sims/bandul-sederhana.js` first. It is the reference for structure, comments and style. The site's other sims (`kereta-lintasan`, `jatuh-bebas`, `hukum-newton`, `gesekan`, `hukum-hooke`, `pegas-massa`, `euler-rk4`) show the patterns for tracks, pulleys, springs, side-by-side comparisons and inset plots.
-3. **Starter page.** Write `<category>/<id>.md` from the text schema below.
+3. **Starter page.** Write `<section>/<category>/<id>.md` from the text schema below.
 4. **Check.** Run:
    ```
-   node scripts/check_sim.js <site>/assets/js/sim-core.js <site>/assets/sims/<id>.js <site>/<category>/<id>.md
+   node scripts/check_sim.js <site>/assets/js/sim-core.js <site>/assets/sims/<id>.js <site>/<section>/<category>/<id>.md
    ```
    Fix every error and re-run until it prints PASS. Treat warnings as things to mention to the user.
 5. **Deliver.** Put files in the outputs folder using repo-relative paths. Reply briefly: the files created, the model assumptions, the checker summary, and the manual checks from the end of this file.
@@ -53,7 +55,7 @@ If the topic is clear, don't ask questions; state your assumptions in the reply.
     dt: 1 / 240,                     // fixed physics step, s (≤ 0.01)
     conserved: 'E',                  // optional: measure() key checked for drift at defaults
     driftTolerance: 0.01,            // optional, default 1 %
-    autoplay: true,                  // optional; reduced-motion users always start paused
+    autoplay: false,                 // optional; default false: the sim waits for Jalankan. true never applies under reduced motion
     params: [                        // ≤ 5 sliders
       { key, label, symbol, unit, min, max, step, value, resets: true /* initial conditions */ }
     ],
@@ -140,6 +142,7 @@ Write exactly this structure. Keep it short: the sim teaches, the text points at
 layout: default
 title: <Title Case Name>
 parent: <Category title>
+grand_parent: <Section title>
 nav_order: <n>
 ---
 
@@ -166,6 +169,7 @@ Style: Bahasa Indonesia, present tense, numbers with units (decimal comma), inli
 
 **Automated** (`scripts/check_sim.js`):
 - contract valid and id matches the filename
+- page front matter has layout, title, parent, nav_order and (inside a section) grand_parent
 - every readout and graph key comes out of `measure()` and stays finite
 - 60 s at defaults stays finite, and conserved drift is within tolerance
 - every min/max slider corner runs 10 s, stays finite and stays in view

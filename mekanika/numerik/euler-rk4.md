@@ -2,6 +2,7 @@
 layout: default
 title: Metode Euler dan RK4
 parent: Metode Numerik
+grand_parent: Fisika Mekanika
 nav_order: 1
 ---
 

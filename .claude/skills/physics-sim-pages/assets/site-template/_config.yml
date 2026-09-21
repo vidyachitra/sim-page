@@ -1,5 +1,5 @@
-title: Simulasi Fisika Mekanika
-description: Simulasi interaktif pendamping Praktikum Fisika Mekanika.
+title: Simulasi Interaktif
+description: Simulasi interaktif pendamping praktikum dan perkuliahan.
 lang: id
 
 # Pin the theme so updates never change pages silently.
@@ -23,7 +23,7 @@ defaults:
       layout: default
 
 color_scheme: light
-footer_content: "Praktikum Fisika Mekanika. Dibuat dengan Just the Docs."
+footer_content: "Simulasi interaktif pendamping praktikum dan perkuliahan. Dibuat dengan Just the Docs."
 search_enabled: true
 heading_anchors: true
 

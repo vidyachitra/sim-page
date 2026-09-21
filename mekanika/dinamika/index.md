@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Dinamika
-nav_order: 3
+parent: Fisika Mekanika
+nav_order: 2
 has_children: true
 ---
 

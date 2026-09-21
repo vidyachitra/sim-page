@@ -2,6 +2,7 @@
 layout: default
 title: Bandul Sederhana
 parent: Elastisitas dan Osilasi
+grand_parent: Fisika Mekanika
 nav_order: 2
 ---
 

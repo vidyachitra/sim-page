@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Metode Numerik
-nav_order: 5
+parent: Fisika Mekanika
+nav_order: 4
 has_children: true
 ---
 

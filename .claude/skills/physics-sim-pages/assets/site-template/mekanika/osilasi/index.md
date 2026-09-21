@@ -1,7 +1,8 @@
 ---
 layout: default
 title: Elastisitas dan Osilasi
-nav_order: 2
+parent: Fisika Mekanika
+nav_order: 1
 has_children: true
 ---
 

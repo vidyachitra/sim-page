@@ -9,18 +9,20 @@ and a shared canvas runtime (`assets/js/sim-core.js`).
 |---|---|
 | `assets/js/sim-core.js` | Shared runtime: loop, controls, readouts, graphs, drawing helpers |
 | `assets/sims/<id>.js` | One file per simulation (API v1 contract) |
-| `<category>/index.md` | Category parent page |
-| `<category>/<id>.md` | Page that embeds a sim via `{% include sim.html id="<id>" %}` |
+| `<section>/index.md` | Subject section (e.g. `mekanika/` = Fisika Mekanika) |
+| `<section>/<category>/index.md` | Category page inside a section |
+| `<section>/<category>/<id>.md` | Page that embeds a sim via `{% include sim.html id="<id>" %}` |
 | `scripts/check_sim.js` | Headless checker for a sim + page |
 | `.claude/skills/physics-sim-pages/` | Claude Code skill used to build new sims |
 
-Site language is Bahasa Indonesia (see the skill). Sims: kereta-lintasan, jatuh-bebas, hukum-newton,
+Site language is Bahasa Indonesia (see the skill). Sims start paused; press Jalankan.
+Section `mekanika/`: kereta-lintasan, jatuh-bebas, hukum-newton,
 gesekan, hukum-hooke, bandul-sederhana, pegas-massa, euler-rk4 — one per practicum module.
 
 ## Check a sim
 
 ```
-node scripts/check_sim.js assets/js/sim-core.js assets/sims/<id>.js <category>/<id>.md
+node scripts/check_sim.js assets/js/sim-core.js assets/sims/<id>.js <section>/<category>/<id>.md
 ```
 
 ## Preview locally
