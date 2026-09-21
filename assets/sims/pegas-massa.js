@@ -32,7 +32,7 @@
     params: [
       { key: 'm', label: 'Massa beban', symbol: 'm', unit: 'kg', min: 0.05, max: 0.25, step: 0.01, value: 0.10, resets: true },
       { key: 'k', label: 'Konstanta pegas', symbol: 'k', unit: 'N/m', min: 10, max: 50, step: 1, value: 20 },
-      { key: 'A', label: 'Amplitudo awal', symbol: 'A', unit: 'm', min: 0.02, max: 0.10, step: 0.01, value: 0.05, resets: true },
+      { key: 'A', label: 'Amplitudo awal', symbol: 'A', unit: 'm', min: 0, max: 0.10, step: 0.01, value: 0.05, resets: true },
       { key: 'b', label: 'Redaman', symbol: 'b', unit: 'kg/s', min: 0, max: 0.5, step: 0.02, value: 0 }
     ],
 

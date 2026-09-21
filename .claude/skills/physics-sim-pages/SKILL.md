@@ -101,6 +101,7 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
 - Use **≤ 5 sliders, ideally 3–4.** On phones the controls stack under the canvas, and every extra slider pushes the sim off-screen.
 - Initial-condition sliders (start angle, launch speed) get `resets: true`. Other sliders change the running sim live.
 - Ranges must be physically sensible and keep the scene inside `view` at every min/max combination. The checker tests all corners.
+- **Let sliders reach 0 when zero is a real case** (angle, amplitude, height, a pulled mass, friction, even g). Guard the divisions that zero creates (`mTot <= 0 → a = 0`, `ω = 0 → T = ∞`). Keep a positive minimum only for quantities in a denominator: spring constant, pendulum length, oscillator mass, Δt.
 - Reset restores all defaults. This is core behavior; don't reimplement it.
 - Drag is optional. Add it when grabbing the object teaches something (set a pendulum angle, pull a spring).
 

@@ -29,8 +29,8 @@
 
     params: [
       { key: 'L', label: 'Panjang tali', symbol: 'L', unit: 'm', min: 0.2, max: 1.2, step: 0.05, value: 1 },
-      { key: 'theta0', label: 'Sudut awal', symbol: 'θ₀', unit: '°', min: 5, max: 170, step: 5, value: 40, resets: true },
-      { key: 'g', label: 'Percepatan gravitasi', symbol: 'g', unit: 'm/s²', min: 1, max: 25, step: 0.1, value: 9.8 },
+      { key: 'theta0', label: 'Sudut awal', symbol: 'θ₀', unit: '°', min: 0, max: 170, step: 5, value: 40, resets: true },
+      { key: 'g', label: 'Percepatan gravitasi', symbol: 'g', unit: 'm/s²', min: 0, max: 25, step: 0.1, value: 9.8 },
       { key: 'b', label: 'Redaman', symbol: 'b', unit: '1/s', min: 0, max: 1, step: 0.05, value: 0 }
     ],
 

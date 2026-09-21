@@ -4,7 +4,7 @@
  *  - Tali tak bermassa dan tak mulur; katrol ideal (tak bermassa, tanpa gesekan).
  *  - Gesekan kinetis μ pada kereta (default 0). Sistem dilepas dari diam, menempuh jarak x = 0,60 m
  *    lalu berhenti di penahan.
- *  - Jika m_g g ≤ μ m_k g, sistem tetap diam.
+ *  - Jika m_g g ≤ μ m_k g (atau massa total nol), sistem tetap diam.
  * Integrator: Euler semi-implisit, dt = 1/240 s (percepatan konstan, jadi eksak).
  * Skala visual: panah kecepatan = 0,25 s × v; panah gaya = 0,25 m/N.
  */
@@ -19,8 +19,8 @@
 
   const accel = (st, p) => {
     if (st.done) return 0;
-    const net = p.mg * G - p.mu * p.mk * G;
-    return (net <= 0 && st.v <= 0) ? 0 : net / (p.mk + p.mg);
+    const net = p.mg * G - p.mu * p.mk * G, mTot = p.mk + p.mg;
+    return (mTot <= 0 || (net <= 0 && st.v <= 0)) ? 0 : net / mTot;
   };
 
   const measure = (st, p) => {
@@ -43,8 +43,8 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'mk', label: 'Massa kereta', symbol: 'm_k', unit: 'kg', min: 0.10, max: 0.30, step: 0.01, value: 0.20, resets: true },
-      { key: 'mg', label: 'Massa beban gantung', symbol: 'm_g', unit: 'kg', min: 0.01, max: 0.10, step: 0.005, value: 0.05, resets: true },
+      { key: 'mk', label: 'Massa kereta', symbol: 'm_k', unit: 'kg', min: 0, max: 0.30, step: 0.01, value: 0.20, resets: true },
+      { key: 'mg', label: 'Massa beban gantung', symbol: 'm_g', unit: 'kg', min: 0, max: 0.10, step: 0.005, value: 0.05, resets: true },
       { key: 'mu', label: 'Gesekan kinetis', symbol: 'μ', unit: '', min: 0, max: 0.10, step: 0.005, value: 0 }
     ],
 

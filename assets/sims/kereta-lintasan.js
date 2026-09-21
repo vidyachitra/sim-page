@@ -39,7 +39,7 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'theta', label: 'Sudut miring', symbol: 'θ', unit: '°', min: 1, max: 10, step: 0.5, value: 5, resets: true },
+      { key: 'theta', label: 'Sudut miring', symbol: 'θ', unit: '°', min: 0, max: 10, step: 0.5, value: 5, resets: true },
       { key: 'mu', label: 'Gesekan kinetis', symbol: 'μ', unit: '', min: 0, max: 0.10, step: 0.005, value: 0 }
     ],
 

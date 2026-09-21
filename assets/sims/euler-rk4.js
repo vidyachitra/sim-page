@@ -4,7 +4,7 @@
  * Asumsi model:
  *  - Pegas ideal tanpa gesekan: dx/dt = v, dv/dt = −(k/m) x; dilepas dari diam di x = A.
  *  - Metode numerik melangkah tiap Δt (waktu simulasi); di antara langkah, posisinya tetap.
- *  - Euler dihentikan dan ditandai "divergen" bila |x| > 5A, agar grafik tetap terbaca.
+ *  - Euler dihentikan dan ditandai "divergen" bila |x| > maks(5A, 5 cm), agar grafik tetap terbaca.
  * Integrator tampilan: dt = 1/240 s hanya untuk jam simulasi; fisika numerik memakai Δt.
  */
 (function () {
@@ -26,9 +26,9 @@
 
     params: [
       { key: 'h', label: 'Langkah waktu', symbol: 'Δt', unit: 's', min: 0.01, max: 0.25, step: 0.01, value: 0.10, resets: true },
-      { key: 'k', label: 'Konstanta pegas', symbol: 'k', unit: 'N/m', min: 10, max: 50, step: 1, value: 20, resets: true },
+      { key: 'k', label: 'Konstanta pegas', symbol: 'k', unit: 'N/m', min: 0, max: 50, step: 1, value: 20, resets: true },
       { key: 'm', label: 'Massa', symbol: 'm', unit: 'kg', min: 0.1, max: 1.0, step: 0.05, value: 0.5, resets: true },
-      { key: 'A', label: 'Amplitudo', symbol: 'A', unit: 'm', min: 0.05, max: 0.20, step: 0.01, value: 0.10, resets: true }
+      { key: 'A', label: 'Amplitudo', symbol: 'A', unit: 'm', min: 0, max: 0.20, step: 0.01, value: 0.10, resets: true }
     ],
 
     graphs: [
@@ -61,7 +61,7 @@
           const aE = -(p.k / p.m) * s.xE;
           s.xE += p.h * s.vE;
           s.vE += p.h * aE;
-          if (Math.abs(s.xE) > 5 * p.A) s.diverged = true;
+          if (Math.abs(s.xE) > Math.max(5 * p.A, 0.05)) s.diverged = true;
         }
         const r = SimCore.rk4(f, 0, [s.xR, s.vR], p.h);
         s.xR = r[0]; s.vR = r[1];
@@ -100,7 +100,8 @@
         d.text(WALL - 0.03, r.y, r.name, 'fg', 'md', 'right');
       });
       if (s.diverged) d.text(0.75, ROWS[1] + BLK / 2 + 0.04, 'Euler divergen (|x| > 5A)', 'vector', 'sm', 'right');
-      d.text(0.75, 0.58, `Δt = ${p.h.toFixed(2)} s · T = ${(2 * Math.PI / omega(p)).toFixed(2)} s`, 'fg', 'sm', 'right');
+      const T = omega(p) > 0 ? `${(2 * Math.PI / omega(p)).toFixed(2)} s` : '∞ (k = 0)';
+      d.text(0.75, 0.58, `Δt = ${p.h.toFixed(2)} s · T = ${T}`, 'fg', 'sm', 'right');
     }
   });
 })();

@@ -22,8 +22,8 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'h', label: 'Ketinggian awal', symbol: 'h', unit: 'm', min: 0.5, max: 1.5, step: 0.05, value: 1, resets: true },
-      { key: 'g', label: 'Percepatan gravitasi', symbol: 'g', unit: 'm/s²', min: 1, max: 25, step: 0.1, value: 9.8 },
+      { key: 'h', label: 'Ketinggian awal', symbol: 'h', unit: 'm', min: 0, max: 1.5, step: 0.05, value: 1, resets: true },
+      { key: 'g', label: 'Percepatan gravitasi', symbol: 'g', unit: 'm/s²', min: 0, max: 25, step: 0.1, value: 9.8 },
       { key: 'b', label: 'Hambatan udara', symbol: 'b', unit: '1/m', min: 0, max: 0.3, step: 0.01, value: 0 }
     ],
 

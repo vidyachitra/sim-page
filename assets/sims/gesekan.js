@@ -23,8 +23,9 @@
     return p.mg * G > p.mus * p.M * G ? 'kinetis' : 'statis';
   };
   const accel = (st, p) => {
-    if (phase(st, p) !== 'kinetis') return 0;
-    return (p.mg * G - p.muk * p.M * G) / (p.M + p.mg);
+    const mTot = p.M + p.mg;
+    if (mTot <= 0 || phase(st, p) !== 'kinetis') return 0;
+    return (p.mg * G - p.muk * p.M * G) / mTot;
   };
   const measure = (st, p) => {
     const ph = phase(st, p), a = accel(st, p);
@@ -45,10 +46,10 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'M', label: 'Massa balok', symbol: 'M', unit: 'kg', min: 0.10, max: 0.30, step: 0.01, value: 0.20, resets: true },
+      { key: 'M', label: 'Massa balok', symbol: 'M', unit: 'kg', min: 0, max: 0.30, step: 0.01, value: 0.20, resets: true },
       { key: 'mg', label: 'Massa beban gantung', symbol: 'm_g', unit: 'kg', min: 0, max: 0.12, step: 0.005, value: 0.03, resets: true },
-      { key: 'mus', label: 'Koefisien statis', symbol: 'μ_s', unit: '', min: 0.05, max: 0.60, step: 0.01, value: 0.20 },
-      { key: 'muk', label: 'Koefisien kinetis', symbol: 'μ_k', unit: '', min: 0.05, max: 0.60, step: 0.01, value: 0.16 }
+      { key: 'mus', label: 'Koefisien statis', symbol: 'μ_s', unit: '', min: 0, max: 0.60, step: 0.01, value: 0.20 },
+      { key: 'muk', label: 'Koefisien kinetis', symbol: 'μ_k', unit: '', min: 0, max: 0.60, step: 0.01, value: 0.16 }
     ],
 
     graphs: [
