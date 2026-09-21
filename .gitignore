@@ -6,3 +6,4 @@ _site/
 physics-sim-pages.skill
 Gemfile.lock
 vendor/
+.bundle/
