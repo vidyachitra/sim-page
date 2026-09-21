@@ -1,5 +1,6 @@
-title: Physics Sims
-description: Interactive simulations for understanding physics.
+title: Simulasi Fisika Mekanika
+description: Simulasi interaktif pendamping Praktikum Fisika Mekanika.
+lang: id
 
 # Pin the theme so updates never change pages silently.
 # Check https://github.com/just-the-docs/just-the-docs/releases for the latest tag before first deploy.
@@ -22,6 +23,7 @@ defaults:
       layout: default
 
 color_scheme: light
+footer_content: "Praktikum Fisika Mekanika. Dibuat dengan Just the Docs."
 search_enabled: true
 heading_anchors: true
 
@@ -31,13 +33,13 @@ kramdown:
 
 callouts:
   note:
-    title: What to notice
+    title: Perhatikan
     color: blue
   try:
-    title: Try this
+    title: Coba
     color: green
   assume:
-    title: Model assumptions
+    title: Asumsi model
     color: grey-lt
 
 exclude:

@@ -14,6 +14,9 @@ and a shared canvas runtime (`assets/js/sim-core.js`).
 | `scripts/check_sim.js` | Headless checker for a sim + page |
 | `.claude/skills/physics-sim-pages/` | Claude Code skill used to build new sims |
 
+Site language is Bahasa Indonesia (see the skill). Sims: kereta-lintasan, jatuh-bebas, hukum-newton,
+gesekan, hukum-hooke, bandul-sederhana, pegas-massa, euler-rk4 — one per practicum module.
+
 ## Check a sim
 
 ```

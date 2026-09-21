@@ -1,5 +1,5 @@
 {%- comment -%} Usage: {% include sim.html id="pendulum" %} {%- endcomment -%}
 <div class="sim" data-sim="{{ include.id }}">
-  <noscript><p>This simulation needs JavaScript.</p></noscript>
+  <noscript><p>Simulasi ini memerlukan JavaScript.</p></noscript>
 </div>
 <script defer src="{{ '/assets/sims/' | append: include.id | append: '.js' | relative_url }}"></script>

@@ -7,6 +7,8 @@ description: Build interactive physics simulations (applets) for a GitHub Pages 
 
 A GitHub Pages site built with **Jekyll + Just the Docs**. Every sim runs on one shared runtime (`sim-core.js`), so layout, controls, colors and responsiveness are identical everywhere. Your main job is the simulation. The user edits the Markdown text afterward.
 
+**Language: Bahasa Indonesia**, light theme only. Page text, slider labels, graph titles, canvas labels and the assumptions comment are Indonesian; symbols stay as in the practicum module (`θ`, `m_g`, `EK`/`EP` for kinetic/potential energy, decimal comma in prose: "0,60 m"). Ids and keys stay lowercase-hyphen ASCII (`jatuh-bebas`). The runtime's own strings (Jalankan/Jeda/Ulang/Kecepatan) live in the `UI` table in `sim-core.js`.
+
 ## Ownership
 
 The user edits pages by hand, so regenerating them would destroy their work.
@@ -26,8 +28,8 @@ The user edits pages by hand, so regenerating them would destroy their work.
 4. Local preview (optional): with Ruby installed, `bundle install` then `bundle exec jekyll serve`. The `Gemfile` uses the `github-pages` gem, so the local build matches GitHub's Jekyll 3.10 exactly. Every page must carry `layout: default`; nothing applies it automatically.
 
 ### New sim
-1. **Category.** Use an existing parent page or create `<category>/index.md` (copy `mechanics/index.md`: `layout: default`, title, `has_children: true`, one line of description).
-2. **Sim file.** Write `assets/sims/<id>.js` following the contract below. Read `assets/site-template/assets/sims/pendulum.js` first. It is the reference for structure, comments and style.
+1. **Category.** Use an existing parent page or create `<category>/index.md` (copy `osilasi/index.md`: `layout: default`, title, `has_children: true`, one line of description).
+2. **Sim file.** Write `assets/sims/<id>.js` following the contract below. Read `assets/site-template/assets/sims/bandul-sederhana.js` first. It is the reference for structure, comments and style. The site's other sims (`kereta-lintasan`, `jatuh-bebas`, `hukum-newton`, `gesekan`, `hukum-hooke`, `pegas-massa`, `euler-rk4`) show the patterns for tracks, pulleys, springs, side-by-side comparisons and inset plots.
 3. **Starter page.** Write `<category>/<id>.md` from the text schema below.
 4. **Check.** Run:
    ```
@@ -84,7 +86,7 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
 
 - **SI internally.** Convert display units (degrees, cm, µF) only in `init`, `measure` and labels.
 - **Integrator by system type.** Never use explicit Euler: it adds energy every step, so orbits spiral out and pendulums grow.
-  - For **conservative** systems (pendulum, spring, orbit, charge in a B-field), use semi-implicit Euler (update velocity, then position with the new velocity) or velocity Verlet. These keep energy bounded over long runs.
+  - For **conservative** systems (pendulum, spring, orbit, charge in a B-field), use semi-implicit Euler (update velocity, then position with the new velocity) or velocity Verlet. These keep energy bounded over long runs. Semi-implicit Euler lets energy wobble by ≈ ω·dt/2; for stiff systems (ω ≳ 10 rad/s) use velocity Verlet to stay under the 1 % drift check.
   - For **damped, driven or non-conservative** systems, and for first-order ODEs such as circuits, use `SimCore.rk4(f, t, yArray, dt)`. `f` must return a new array.
   - A **closed-form** solution is fine when it is exact and simple. Give the parameters it depends on `resets: true`.
 - **Defaults are the conservative case** when `conserved` is set, because the checker measures drift at defaults. Put damping and driving on sliders that default to 0.
@@ -114,7 +116,7 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
   | `trail` | path history |
   | `ke`, `pe`, `total` | energy |
 
-- **Draw with the helpers `d`**: `line`, `polyline`, `dot` (radius in px), `circle` (radius in m), `arrow` (with a short label like `v`, `F`, `mg`), `text`, `energyBars`. Positions are world meters, line widths are px (thin 1, normal 2, emphasis 3). They produce the same look across sims.
+- **Draw with the helpers `d`**: `line`, `polyline`, `dot` (radius in px), `circle` (radius in m), `arrow` (with a short label like `v`, `F`, `mg`), `text`, `polygon` (filled, optional outline), `rect` (bottom-left corner, w × h in m), `spring` (coil between two points), `energyBars`. Positions are world meters, line widths are px (thin 1, normal 2, emphasis 3). They produce the same look across sims.
 - Show **energy as a graph** (KE, PE, E) whenever energy is part of the lesson. `d.energyBars` still exists for sims that want an on-canvas summary, but prefer the graph.
 - Add **graphs** for the quantities the page text talks about (position, velocity, acceleration, current, …). Two to four graphs; more pushes the page too long on phones.
 - **Minimal canvas text**: labels only. Explanations belong on the page.
@@ -158,7 +160,7 @@ $$<one key equation, same symbols as the sliders>$$
 > - <Model assumption, ≤ 12 words>    (1–3 bullets, mirrors the code comment)
 ```
 
-Style: address the reader as "you", use present tense, give numbers with units, and use inline math as `$$...$$` (kramdown). No filler ("In this simulation we will…"), no exclamation marks, no questions in `.note`. `.try` prompts may end with a question.
+Style: Bahasa Indonesia, present tense, numbers with units (decimal comma), inline math as `$...$` (kramdown). No filler ("Pada simulasi ini kita akan…"), no exclamation marks, no questions in `.note`. `.try` prompts may end with a question. Callout titles are set in `_config.yml` (Perhatikan / Coba / Asumsi model).
 
 ## Checks
 

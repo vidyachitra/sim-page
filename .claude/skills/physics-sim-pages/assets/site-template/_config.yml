@@ -1,5 +1,6 @@
-title: Physics Sims
-description: Interactive simulations for understanding physics.
+title: Simulasi Fisika Mekanika
+description: Simulasi interaktif pendamping Praktikum Fisika Mekanika.
+lang: id
 
 # Pin the theme so updates never change pages silently.
 # Check https://github.com/just-the-docs/just-the-docs/releases for the latest tag before first deploy.
@@ -7,12 +8,11 @@ remote_theme: just-the-docs/just-the-docs@v0.10.0
 plugins:
   - jekyll-remote-theme
 
-# Project sites (username.github.io/repo): GitHub Pages usually sets this;
-# set it explicitly for local preview, e.g. "/physics-sims".
+# Project sites (username.github.io/repo) need the repo name here; user sites
+# (username.github.io) use "". GitHub does not set this for you.
 baseurl: ""
 
-# GitHub sets this automatically on deploy. Set it to "username/repo" only if you
-# want to run a JEKYLL_ENV=production build locally.
+# owner/repo on GitHub; lets a JEKYLL_ENV=production build run locally.
 # repository: username/repo
 
 # Every page uses the theme layout unless it says otherwise (index.md uses home).
@@ -23,6 +23,7 @@ defaults:
       layout: default
 
 color_scheme: light
+footer_content: "Praktikum Fisika Mekanika. Dibuat dengan Just the Docs."
 search_enabled: true
 heading_anchors: true
 
@@ -32,13 +33,13 @@ kramdown:
 
 callouts:
   note:
-    title: What to notice
+    title: Perhatikan
     color: blue
   try:
-    title: Try this
+    title: Coba
     color: green
   assume:
-    title: Model assumptions
+    title: Asumsi model
     color: grey-lt
 
 exclude:

@@ -1,11 +1,11 @@
 ---
-title: Home
+title: Beranda
 layout: home
 nav_order: 1
 ---
 
-# Physics Sims
-Change a parameter. Watch what happens.
+# Simulasi Fisika Mekanika
+Ubah satu parameter. Lihat apa yang terjadi.
 {: .fs-6 .fw-300 }
 
-Pick a topic from the sidebar. Every sim has the same controls: **Play**, **Reset**, **Speed**, and sliders below the canvas. Some objects can be dragged.
+Simulasi pendamping Praktikum Fisika Mekanika. Pilih topik di bilah samping. Setiap simulasi memakai kontrol yang sama: **Jalankan**, **Ulang**, **Kecepatan**, dan penggeser parameter di bawah kanvas. Grafik di samping kanvas menunjukkan besaran yang berubah terhadap waktu. Beberapa objek dapat diseret.

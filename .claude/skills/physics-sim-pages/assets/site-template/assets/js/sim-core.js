@@ -24,6 +24,13 @@
   const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   const COLOR_NAMES = ['bg', 'fg', 'muted', 'grid', 'body', 'body-2', 'vector', 'vector-2',
     'trail', 'ke', 'pe', 'total', 'accent'];
+  // Site language: Bahasa Indonesia. Every user-facing string of the runtime lives here.
+  const UI = {
+    play: 'Jalankan', pause: 'Jeda', reset: 'Ulang', speed: 'Kecepatan',
+    vsTime: 'terhadap waktu', timeAxis: 't (s)',
+    stopped: 'Simulasi berhenti karena galat:',
+    invalid: 'Simulasi tidak dapat dimuat (definisi tidak valid).'
+  };
 
   const defs = {};
   let uid = 0;
@@ -150,6 +157,32 @@
       dot(x, y, rPx = 6, color = 'body') {
         ctx.fillStyle = c(color); ctx.beginPath(); ctx.arc(X(x), Y(y), rPx, 0, 2 * Math.PI); ctx.fill();
       },
+      // Filled polygon from world points; add an outline color to stroke it too.
+      polygon(pts, color = 'body', outline = null, w = 1.5) {
+        if (!pts || pts.length < 3) return;
+        ctx.beginPath(); ctx.moveTo(X(pts[0][0]), Y(pts[0][1]));
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(X(pts[i][0]), Y(pts[i][1]));
+        ctx.closePath(); ctx.fillStyle = c(color); ctx.fill();
+        if (outline) { pen(outline, w); ctx.stroke(); }
+      },
+      // Axis-aligned box: (x, y) is the bottom-left corner, w and h in meters.
+      rect(x, y, wM, hM, color = 'body', outline = null) {
+        this.polygon([[x, y], [x + wM, y], [x + wM, y + hM], [x, y + hM]], color, outline);
+      },
+      // Coil spring between two world points; n coils, width in meters.
+      spring(x1, y1, x2, y2, n = 10, width = 0.05, color = 'fg', w = 2) {
+        const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+        if (len < 1e-9) return;
+        const ux = dx / len, uy = dy / len, px = -uy, py = ux;
+        const lead = Math.min(len * 0.1, 0.03), coil = len - 2 * lead;
+        const pts = [[x1, y1], [x1 + ux * lead, y1 + uy * lead]];
+        for (let i = 0; i < 2 * n; i++) {
+          const s = lead + coil * (i + 0.5) / (2 * n), side = (i % 2 ? -1 : 1) * width / 2;
+          pts.push([x1 + ux * s + px * side, y1 + uy * s + py * side]);
+        }
+        pts.push([x2 - ux * lead, y2 - uy * lead], [x2, y2]);
+        this.polyline(pts, color, w);
+      },
       circle(x, y, rM, color = 'body', fill = true, w = 2) {
         ctx.beginPath(); ctx.arc(X(x), Y(y), rM * v.scale, 0, 2 * Math.PI);
         if (fill) { ctx.fillStyle = c(color); ctx.fill(); } else { pen(color, w); ctx.stroke(); }
@@ -268,7 +301,7 @@
       ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke();
       ctx.fillText(t.toFixed(tickDigits(xstep)), x, T + ph + 4);
     }
-    ctx.textAlign = 'right'; ctx.fillText('t (s)', L + pw, T + ph + 4);
+    ctx.textAlign = 'right'; ctx.fillText(UI.timeAxis, L + pw, T + ph + 4);
     if (lo < 0 && hi > 0) {                              // zero line
       const y = Math.round(Y(0)) + 0.5;
       ctx.strokeStyle = c('muted'); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
@@ -366,10 +399,10 @@
 
     // Control bar (same for every sim)
     const bar = el('div', 'sim-bar');
-    const playBtn = button('Play', 'btn btn-primary sim-play');
-    const resetBtn = button('Reset', 'btn sim-reset');
+    const playBtn = button(UI.play, 'btn btn-primary sim-play');
+    const resetBtn = button(UI.reset, 'btn sim-reset');
     const speedWrap = el('label', 'sim-speed');
-    speedWrap.append('Speed ');
+    speedWrap.append(UI.speed + ' ');
     const speedSel = el('select');
     SPEEDS.forEach(s => {
       const o = el('option', null, s + '×'); o.value = String(s); if (s === 1) o.selected = true;
@@ -427,7 +460,7 @@
       const fig = el('figure', 'sim-graph');
       G.canvas = el('canvas');
       G.canvas.setAttribute('role', 'img');
-      G.canvas.setAttribute('aria-label', `${g.title} against time`);
+      G.canvas.setAttribute('aria-label', `${g.title} ${UI.vsTime}`);
       G.ctx = G.canvas.getContext('2d');
       fig.appendChild(G.canvas);
       graphBox.appendChild(fig);
@@ -451,7 +484,7 @@
       if (failed) return;
       failed = true; running = false;
       console.error(`[SimCore:${def.id}]`, err);
-      host.appendChild(el('p', 'sim-error', `This simulation stopped because of an error: ${err && err.message}`));
+      host.appendChild(el('p', 'sim-error', `${UI.stopped} ${err && err.message}`));
       playBtn.disabled = true;
     }
     function render() {
@@ -495,7 +528,7 @@
     }
     function setRunning(on) {
       running = on && !failed;
-      playBtn.textContent = running ? 'Pause' : 'Play';
+      playBtn.textContent = running ? UI.pause : UI.play;
       playBtn.setAttribute('aria-pressed', String(running));
       if (!running) updateReadouts();
       kick();
@@ -630,7 +663,7 @@
     const go = () => hosts().forEach(h => {
       if (errs.length) {
         console.error(`[SimCore:${id}] invalid definition:\n- ${errs.join('\n- ')}`);
-        h.appendChild(el('p', 'sim-error', 'This simulation could not load (invalid definition).'));
+        h.appendChild(el('p', 'sim-error', UI.invalid));
       } else {
         mount(def, h);
       }
