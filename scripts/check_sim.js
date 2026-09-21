@@ -144,7 +144,12 @@ if (!def.positions) warn('no positions(): cannot check the scene stays in view')
 // ---------------------------------------------------------------- 3. page
 if (pagePath) {
   const md = fs.readFileSync(pagePath, 'utf8');
+  const fm = (md.match(/^---\r?\n([\s\S]*?)\r?\n---/) || [])[1] || '';
   const body = md.replace(/^---[\s\S]*?---\s*/, '');
+
+  // GitHub Pages applies no layout by itself: without this line the page is bare HTML.
+  if (!/^layout:\s*default\s*$/m.test(fm)) err('page: front matter must include "layout: default"');
+  for (const k of ['title', 'parent', 'nav_order']) if (!new RegExp('^' + k + ':', 'm').test(fm)) err('page: front matter missing "' + k + ':"');
   const words = t => t.replace(/\$\$[\s\S]*?\$\$/g, 'X').replace(/[*_`>#-]/g, ' ').trim().split(/\s+/).filter(Boolean).length;
   const lines = body.split('\n');
 

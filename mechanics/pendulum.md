@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Simple Pendulum
 parent: Mechanics
 nav_order: 1

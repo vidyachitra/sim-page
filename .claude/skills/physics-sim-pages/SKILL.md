@@ -25,7 +25,7 @@ The user edits pages by hand, so regenerating them would destroy their work.
 3. Push, then set **Settings → Pages → Deploy from a branch** (main, `/root`). No Actions needed.
 
 ### New sim
-1. **Category.** Use an existing parent page or create `<category>/index.md` (copy `mechanics/index.md`: title, `has_children: true`, one line of description).
+1. **Category.** Use an existing parent page or create `<category>/index.md` (copy `mechanics/index.md`: `layout: default`, title, `has_children: true`, one line of description).
 2. **Sim file.** Write `assets/sims/<id>.js` following the contract below. Read `assets/site-template/assets/sims/pendulum.js` first. It is the reference for structure, comments and style.
 3. **Starter page.** Write `<category>/<id>.md` from the text schema below.
 4. **Check.** Run:
@@ -125,6 +125,7 @@ Write exactly this structure. Keep it short: the sim teaches, the text points at
 
 ```markdown
 ---
+layout: default
 title: <Title Case Name>
 parent: <Category title>
 nav_order: <n>

@@ -1,14 +1,17 @@
-# Local preview only. GitHub Pages ignores this file and builds with its own
-# environment (Jekyll + jekyll-remote-theme reading _config.yml).
+# Local preview only. GitHub Pages ignores this file, but the github-pages gem
+# pins the exact Jekyll and plugin versions GitHub uses, so what you see at
+# localhost:4000 is what gets deployed. remote_theme in _config.yml pulls the theme.
 source "https://rubygems.org"
 
-gem "jekyll", "~> 4.3"
-gem "jekyll-remote-theme"
-gem "just-the-docs", "0.10.0"   # keep in sync with remote_theme in _config.yml
+gem "github-pages", group: :jekyll_plugins
 
-# Windows: timezone data and no polling watcher
+# Jekyll 3 on Ruby 3 needs these explicitly.
+gem "webrick"
+gem "faraday-retry"
+
+# Windows: timezone data and a native file watcher.
 platforms :windows do
-  gem "tzinfo", "~> 2.0"
+  gem "tzinfo", "~> 1.2"
   gem "tzinfo-data"
   gem "wdm", ">= 0.1.0"
 end
