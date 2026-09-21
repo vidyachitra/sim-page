@@ -14,7 +14,7 @@ $$\ddot{\theta} = -\frac{g}{L}\sin\theta - b\,\dot{\theta}$$
 
 {: .note }
 > - KE peaks at the bottom, PE at the ends.
-> - With $$b = 0$$, the E bar never changes.
+> - With $$b = 0$$, the E line stays flat.
 > - Large angles swing slower than small ones.
 
 {: .try }

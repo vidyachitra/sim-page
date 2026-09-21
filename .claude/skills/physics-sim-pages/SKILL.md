@@ -23,6 +23,7 @@ The user edits pages by hand, so regenerating them would destroy their work.
 1. Copy `assets/site-template/` (in this skill) to the repo root.
 2. Tell the user to check the latest Just the Docs release tag and KaTeX version and update the pins in `_config.yml` and `_includes/head_custom.html`.
 3. Push, then set **Settings → Pages → Deploy from a branch** (main, `/root`). No Actions needed.
+4. Local preview (optional): with Ruby installed, `bundle install` then `bundle exec jekyll serve`. The `Gemfile` uses the `github-pages` gem, so the local build matches GitHub's Jekyll 3.10 exactly. Every page must carry `layout: default`; nothing applies it automatically.
 
 ### New sim
 1. **Category.** Use an existing parent page or create `<category>/index.md` (copy `mechanics/index.md`: `layout: default`, title, `has_children: true`, one line of description).
@@ -77,7 +78,7 @@ If the topic is clear, don't ask questions; state your assumptions in the reply.
 
 The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs, resize, DPR, the loop, off-screen pause and touch handling. Sims never add buttons, `requestAnimationFrame`, event listeners or CSS.
 
-**Graphs** are strip charts below the sliders, sampled from `measure()` in sim time (so Speed changes the pace, not the shape). The core owns axes, autoscaling and the scrolling window; history clears on Reset, on an initial-condition slider and when the object is dragged. Give each graph one unit: put KE, PE and E together, but θ, ω and α each get their own graph. Use `min: 0` for quantities that cannot go negative so the baseline is visible.
+**Graphs** are strip charts beside the canvas on wide screens (stacked to its height, sliders under both) and below the sliders on phones. They are sampled from `measure()` in sim time (so Speed changes the pace, not the shape). The core owns axes, autoscaling and the scrolling window; history clears on Reset, on an initial-condition slider and when the object is dragged. Give each graph one unit: put KE, PE and E together, but θ, ω and α each get their own graph. Use `min: 0` for quantities that cannot go negative so the baseline is visible.
 
 ## Physics rules
 
@@ -126,6 +127,7 @@ The core handles responsiveness: the canvas fills the content width at the sim's
 
 - Pick `aspect` from the list in the contract. Never use portrait; it becomes huge on desktop.
 - Size physical things in meters and markers or text in px. Never read the window size or `canvas.width`.
+- With graphs, the canvas shares the row with them on wide screens, so it is about 45 % of the content width. Check the sim still fits one desktop screen (canvas + sliders ≈ 600 px tall at 1440 × 900). A square canvas is fine; a 4/3 one gives more room.
 
 ## Page text schema
 
