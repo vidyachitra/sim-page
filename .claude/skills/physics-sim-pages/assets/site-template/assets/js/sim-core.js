@@ -435,10 +435,16 @@
       return G;
     });
 
-    host.append(stage, bar);
-    if (readoutBox.childElementCount) host.appendChild(readoutBox);
-    if (params.length) host.appendChild(controls);
-    if (graphs.length) host.appendChild(graphBox);
+    // Layout: canvas + bar + readouts, then sliders, then graphs. On wide hosts CSS
+    // moves the graphs beside the canvas so both fit on one screen.
+    const layout = el('div', 'sim-layout' + (graphs.length ? ' has-graphs' : ''));
+    const main = el('div', 'sim-main');
+    main.append(stage, bar);
+    if (readoutBox.childElementCount) main.appendChild(readoutBox);
+    layout.appendChild(main);
+    if (params.length) layout.appendChild(controls);
+    if (graphs.length) layout.appendChild(graphBox);
+    host.appendChild(layout);
 
     // ---- behavior
     function fail(err) {

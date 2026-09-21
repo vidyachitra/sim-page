@@ -20,7 +20,32 @@
 }
 
 // ------------------------------------------------------------------ layout
-.sim { margin: 1.5rem 0; }
+// Narrow: canvas, sliders, graphs stacked. Wide (container ≥ 40rem): graphs
+// beside the canvas, stretched to its height, sliders below both.
+.sim { margin: 1.5rem 0; container-type: inline-size; }
+
+.sim-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "main" "controls" "graphs";
+  gap: 1rem;
+}
+
+.sim-main { grid-area: main; min-width: 0; }
+
+@container (min-width: 40rem) {
+  .sim-layout.has-graphs {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas: "main graphs" "controls controls";
+    align-items: stretch;
+  }
+  .sim-layout.has-graphs .sim-graphs {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(7rem, 1fr);
+    gap: 0.5rem;
+  }
+  .sim-layout.has-graphs .sim-graph { aspect-ratio: auto; min-height: 0; }
+}
 
 .sim-stage {
   position: relative;
@@ -73,10 +98,10 @@
 
 // 1 column on phones, up to 3 inside the Just the Docs content width.
 .sim-controls {
+  grid-area: controls;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   gap: 0.75rem 1.5rem;
-  margin-top: 1rem;
 }
 
 .sim-param-label {
@@ -96,15 +121,17 @@
   accent-color: var(--sim-accent);
 }
 
-// Time graphs: 1 column on phones, 2 inside the Just the Docs content width.
+// Time graphs. Stacked mode: as many columns as fit at ≥ 17rem each.
 .sim-graphs {
+  grid-area: graphs;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
   gap: 0.75rem;
-  margin-top: 1rem;
+  min-width: 0;
 }
 
 .sim-graph {
+  position: relative;
   margin: 0;
   aspect-ratio: 2.2;
   background: var(--sim-bg);
@@ -112,7 +139,8 @@
   border-radius: var(--sim-radius);
   overflow: hidden;
 
-  canvas { display: block; width: 100%; height: 100%; }
+  // Out of flow so the canvas backing size never feeds back into the row height.
+  canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 }
 
 .sim-error {

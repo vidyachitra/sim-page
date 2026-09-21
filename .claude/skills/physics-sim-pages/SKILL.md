@@ -114,10 +114,11 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
   | `ke`, `pe`, `total` | energy |
 
 - **Draw with the helpers `d`**: `line`, `polyline`, `dot` (radius in px), `circle` (radius in m), `arrow` (with a short label like `v`, `F`, `mg`), `text`, `energyBars`. Positions are world meters, line widths are px (thin 1, normal 2, emphasis 3). They produce the same look across sims.
-- Draw **energy bars** (`d.energyBars`, scaled to the initial energy) whenever energy is part of the lesson, and add an energy **graph** so the exchange over time is visible too.
+- Show **energy as a graph** (KE, PE, E) whenever energy is part of the lesson. `d.energyBars` still exists for sims that want an on-canvas summary, but prefer the graph.
 - Add **graphs** for the quantities the page text talks about (position, velocity, acceleration, current, …). Two to four graphs; more pushes the page too long on phones.
 - **Minimal canvas text**: labels only. Explanations belong on the page.
-- **Keep the view tight** around the motion; empty space shrinks the physics on phones.
+- **Keep the view tight** around the motion; empty space shrinks the physics on phones. Size the view for the largest slider values, so cap slider ranges instead of widening the view.
+- **Readouts are optional.** Skip them when every value is already in a graph legend; the canvas and graphs then share one screen on desktop.
 
 ## Responsive behavior
 

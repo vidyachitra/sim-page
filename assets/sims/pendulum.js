@@ -22,27 +22,19 @@
     api: 1,
     id: 'pendulum',
     title: 'Simple pendulum',
-    aspect: 4 / 3,
-    view: { x: [-2.2, 2.2], y: [-1.7, 1.6] },
+    aspect: 1,                                   // the bob can reach any point of a circle
+    view: { x: [-1.35, 1.35], y: [-1.35, 1.35] }, // fits L = 1.2 m at every angle
     dt: 1 / 240,
     conserved: 'E',
 
     params: [
-      { key: 'L', label: 'Length', symbol: 'L', unit: 'm', min: 0.2, max: 1.5, step: 0.05, value: 1 },
+      { key: 'L', label: 'Length', symbol: 'L', unit: 'm', min: 0.2, max: 1.2, step: 0.05, value: 1 },
       { key: 'theta0', label: 'Start angle', symbol: 'θ₀', unit: '°', min: 5, max: 170, step: 5, value: 40, resets: true },
       { key: 'g', label: 'Gravity', symbol: 'g', unit: 'm/s²', min: 1, max: 25, step: 0.1, value: 9.8 },
       { key: 'b', label: 'Damping', symbol: 'b', unit: '1/s', min: 0, max: 1, step: 0.05, value: 0 }
     ],
 
-    readouts: [
-      { key: 'thetaDeg', label: 'θ', unit: '°', digits: 1 },
-      { key: 'omega', label: 'ω', unit: 'rad/s', digits: 2, color: 'vector2' },
-      { key: 'alpha', label: 'α', unit: 'rad/s²', digits: 2, color: 'vector' },
-      { key: 'KE', label: 'KE', unit: 'J', digits: 3, color: 'ke' },
-      { key: 'PE', label: 'PE', unit: 'J', digits: 3, color: 'pe' },
-      { key: 'E', label: 'E', unit: 'J', digits: 3, color: 'total' }
-    ],
-
+    // No readouts: the graph legends show the live values.
     graphs: [
       { title: 'Energy', unit: 'J', min: 0, series: [
         { key: 'KE', label: 'KE', color: 'ke', digits: 3 },
@@ -56,7 +48,6 @@
 
     init(p) {
       const s = { theta: p.theta0 * Math.PI / 180, omega: 0, n: 0, trail: [] };
-      s.E0 = energy(s, p).E;
       return s;
     },
 
@@ -79,7 +70,6 @@
 
     draw(ctx, s, p, v, d) {
       const [bx, by] = bob(s, p);
-      const e = energy(s, p);
       d.polyline(s.trail, 'trail', 2);
       d.line(-0.3, 0, 0.3, 0, 'fg', 3);                  // support
       d.line(0, 0, bx, by, 'fg', 2);                     // rod
@@ -87,11 +77,6 @@
       const vx = p.L * s.omega * Math.cos(s.theta), vy = p.L * s.omega * Math.sin(s.theta);
       d.arrow(bx, by, vx * V_SCALE, vy * V_SCALE, 'vector2', 'v');
       d.dot(bx, by, 12, 'body');
-      d.energyBars([
-        { value: e.KE, color: 'ke', label: 'KE' },
-        { value: e.PE, color: 'pe', label: 'PE' },
-        { value: e.E, color: 'total', label: 'E' }
-      ], s.E0);
     },
 
     drag: {
@@ -100,7 +85,6 @@
         s.theta = Math.atan2(x, -y);
         s.omega = 0;
         s.trail.length = 0;
-        s.E0 = energy(s, p).E;
       }
     }
   });
