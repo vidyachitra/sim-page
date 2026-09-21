@@ -11,6 +11,13 @@ plugins:
 # set it explicitly for local preview, e.g. "/physics-sims".
 baseurl: ""
 
+# Every page uses the theme layout unless it says otherwise (index.md uses home).
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
 color_scheme: light
 search_enabled: true
 heading_anchors: true
@@ -33,3 +40,6 @@ callouts:
 exclude:
   - README.md
   - scripts/
+  - Gemfile
+  - Gemfile.lock
+  - "*.skill"

@@ -4,3 +4,5 @@ _site/
 
 # Original skill archive (installed under .claude/skills/)
 physics-sim-pages.skill
+Gemfile.lock
+vendor/
