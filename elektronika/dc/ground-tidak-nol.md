@@ -1,15 +1,15 @@
 ---
 layout: default
-title: Tanah yang Tidak Nol
+title: Ground yang Tidak Nol
 parent: Rangkaian DC
 grand_parent: Elektronika
 nav_order: 5
 ---
 
-# Tanah yang Tidak Nol
-"Tanah" hanya nol di satu titik; arus besar pada kawat kembali bersama mengangkat tanah lokal dan merusak pembacaan sensor.
+# Ground yang Tidak Nol
+"Ground" hanya nol di satu titik; arus besar pada kawat kembali bersama mengangkat ground lokal dan merusak pembacaan sensor.
 
-{% include sim.html id="loop-tanah" %}
+{% include sim.html id="ground-tidak-nol" %}
 
 $$V_{G'} = (I_m + I_s)\,R_g, \qquad V_{\text{ADC}} = V_s + V_{G'}$$
 
@@ -25,4 +25,4 @@ $$V_{G'} = (I_m + I_s)\,R_g, \qquad V_{\text{ADC}} = V_s + V_{G'}$$
 {: .assume }
 > - Motor hidup 0,5 s dan mati 0,5 s bergantian.
 > - Arus sensor tetap 10 mA; kawat lain tanpa hambatan.
-> - ADC ideal, mengacu ke tanah catu daya.
+> - ADC ideal, mengacu ke ground catu daya.

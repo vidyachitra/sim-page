@@ -14,7 +14,7 @@ Umpan balik negatif memaksa kedua masukan op-amp bertegangan sama, sehingga peng
 $$A_{inv} = -\frac{R_f}{R_{in}}, \qquad A_{non} = 1 + \frac{R_f}{R_{in}}, \qquad |v_{out}| \le V_{cc}$$
 
 {: .note }
-> - Selama linear, $$v(-)$$ menempel pada $$v(+)$$: tanah maya pada inverting.
+> - Selama linear, $$v(-)$$ menempel pada $$v(+)$$: ground maya pada inverting.
 > - Keluaran inverting terbalik fase; non-inverting sefase.
 > - Saat jenuh, puncak terpotong rata dan $$v(-)$$ lepas dari $$v(+)$$.
 

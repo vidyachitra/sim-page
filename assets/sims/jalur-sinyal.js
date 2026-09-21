@@ -1,5 +1,5 @@
 /* Pengaruh jalur sinyal (kawat / jalur PCB) pada sinyal digital (Rangkaian Transien)
- * Jalur dimodelkan sebagai parasit tergumpal: hambatan R_t dan induktansi L_t seri, kapasitansi C_t ke tanah
+ * Jalur dimodelkan sebagai parasit tergumpal: hambatan R_t dan induktansi L_t seri, kapasitansi C_t ke ground
  * di ujung penerima, dan beban R_L. Sumber: gelombang kotak ideal (tepi tegak) amplitudo 3,3 V, frekuensi f.
  * Asumsi model:
  *  - di/dt = (v_in − i R_t − v_out)/L_t ; dv_out/dt = (i − v_out/R_L)/C_t ; RK4.
@@ -70,7 +70,7 @@
       d.rect(-0.3, 0.6, 0.5, 0.5, 'bg', 'fg'); d.text(-0.05, 0.85, 'pengirim', 'fg', 'sm');
       d.text(-0.05, 0.7, `${vin(st.t, p).toFixed(1)} V`, vin(st.t, p) > 0 ? 'current' : 'muted', 'sm');
       d.wire([[0.2, 0.85], [0.5, 0.85]]);
-      // Jalur: R_t dan L_t seri, C_t ke tanah di ujung
+      // Jalur: R_t dan L_t seri, C_t ke ground di ujung
       d.resistor(0.5, 0.85, 1.1, 0.85, `R_t = ${p.Rt.toFixed(1)} Ω`, 1);
       d.inductor(1.1, 0.85, 1.9, 0.85, `L_t = ${p.L} nH`, 1);
       d.wire([[1.9, 0.85], [2.3, 0.85]]);

@@ -7,4 +7,4 @@ has_children: true
 ---
 
 # Rangkaian DC
-Pembagi tegangan, hukum Kirchhoff, teorema Thevenin–Norton, hambatan dalam sumber, dan tanah yang tidak nol.
+Pembagi tegangan, hukum Kirchhoff, teorema Thevenin–Norton, hambatan dalam sumber, dan ground yang tidak nol.

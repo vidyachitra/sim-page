@@ -1,8 +1,8 @@
 /* Penguat op-amp inverting dan non-inverting (Elektronika Dasar)
  * Asumsi model:
  *  - Op-amp ideal (penguatan lingkar terbuka tak hingga, arus masukan nol) dengan batas keluaran ±V_cc (jenuh).
- *  - Inverting: v_out = −(R_f/R_in) v_in; simpul (−) = tanah maya selama tidak jenuh. Saat jenuh,
- *    v(−) = (v_in R_f + v_out R_in)/(R_in + R_f) (superposisi): tanah maya "hilang".
+ *  - Inverting: v_out = −(R_f/R_in) v_in; simpul (−) = ground maya selama tidak jenuh. Saat jenuh,
+ *    v(−) = (v_in R_f + v_out R_in)/(R_in + R_f) (superposisi): ground maya "hilang".
  *  - Non-inverting: v_out = (1 + R_f/R_in) v_in; v(−) = v_out R_in/(R_in + R_f) mengikuti v(+) = v_in.
  *  - Sumber sinus 1 kHz. Diputar lambat 1000×. Satuan internal SI; penggeser dalam kΩ, grafik dalam mA.
  */
@@ -92,7 +92,7 @@
       d.text(px - 0.14, py - 0.13, `v(+) = ${s.vplus.toFixed(2)} V`, 'vector2', 'sm', 'right');
 
       d.text(1.2, -0.55, `${ni ? 'non-inverting' : 'inverting'}: A = ${ni ? '1 + R_f/R_in' : '−R_f/R_in'} = ${s.gain.toFixed(1)} · puncak ideal ${Math.abs(s.gain * p.Vm).toFixed(1)} V`, 'fg', 'sm');
-      d.text(1.2, -0.7, s.sat ? 'JENUH: keluaran terpotong di ±V_cc, tanah maya hilang' : 'linear: v(−) ≈ v(+)', s.sat ? 'vector' : 'muted', 'sm');
+      d.text(1.2, -0.7, s.sat ? 'JENUH: keluaran terpotong di ±V_cc, ground maya hilang' : 'linear: v(−) ≈ v(+)', s.sat ? 'vector' : 'muted', 'sm');
     }
   });
 })();

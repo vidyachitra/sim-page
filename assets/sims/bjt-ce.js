@@ -1,6 +1,6 @@
 /* Penguat transistor emitor bersama dengan bias basis (Elektronika Dasar)
  * Asumsi model:
- *  - NPN, V_cc = 12 V, R_C di kolektor, emitor ke tanah. Basis diberi bias V_BB seri R_B; sinyal v_in seri V_BB.
+ *  - NPN, V_cc = 12 V, R_C di kolektor, emitor ke ground. Basis diberi bias V_BB seri R_B; sinyal v_in seri V_BB.
  *  - Model garis-patah: putus jika V_BB + v_in < 0,7 V (i_B = 0); aktif: i_B = (V_BB + v_in − 0,7)/R_B, i_C = β i_B;
  *    jenuh: i_C dibatasi (V_cc − 0,2)/R_C, V_CE = 0,2 V.
  *  - v_out = V_CE = V_cc − i_C R_C. Penguatan kecil-sinyal ≈ −β R_C / R_B.
@@ -77,7 +77,7 @@
       d.text(bx + 0.1, 1.5, `V_cc = ${VCC} V`, 'muted', 'sm');
       d.node(bx + 0.1, 0.85); d.wire([[bx + 0.1, 0.85], [2.1, 0.85]]); d.node(2.1, 0.85);
       d.text(2.15, 0.97, `v_out = ${s.vCE.toFixed(2)} V`, 'voltage', 'sm', 'left');
-      // Emitor ke tanah
+      // Emitor ke ground
       d.wire([[bx + 0.1, by - 0.19], [bx + 0.1, 0]]); d.ground(bx + 0.1, 0);
       d.text(1.0, -0.42, `Q: i_B = ${(q.iB * 1e6).toFixed(1)} µA · i_C = ${(q.iC * 1e3).toFixed(2)} mA · V_CE = ${q.vCE.toFixed(2)} V`, 'fg', 'sm');
       d.text(1.0, -0.58, `A_v ≈ −β R_C/R_B = ${(-p.beta * p.RC / p.RB).toFixed(1)} · sekarang: ${s.mode}`, s.mode === 'aktif' ? 'muted' : 'vector', 'sm');
