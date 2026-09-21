@@ -7,13 +7,12 @@ remote_theme: just-the-docs/just-the-docs@v0.10.0
 plugins:
   - jekyll-remote-theme
 
-# Project sites (username.github.io/repo): GitHub Pages usually sets this;
-# set it explicitly for local preview, e.g. "/physics-sims".
-baseurl: ""
+# Project sites (username.github.io/repo) need the repo name here; user sites
+# (username.github.io) use "". GitHub does not set this for you.
+baseurl: "/sim-page"
 
-# GitHub sets this automatically on deploy. Set it to "username/repo" only if you
-# want to run a JEKYLL_ENV=production build locally.
-# repository: username/repo
+# owner/repo on GitHub; lets a JEKYLL_ENV=production build run locally.
+repository: auzan-main/sim-page
 
 # Every page uses the theme layout unless it says otherwise (index.md uses home).
 defaults:
