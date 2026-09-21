@@ -15,7 +15,7 @@ The user edits pages by hand, so regenerating them would destroy their work.
 |---|---|
 | `assets/sims/<id>.js` | You |
 | `<category>/<id>.md` | You create it **once** as a starter; after that the user owns it. Never overwrite an existing page. If a sim change breaks the text (renamed symbol, removed slider), tell the user which lines to update. |
-| `assets/js/sim-core.js`, `_includes/*`, `_sass/custom/custom.scss`, `_config.yml` | Shared. Change only when asked. A change to the sim contract means bumping `API_VERSION` and updating every sim. |
+| `assets/js/sim-core.js`, `_includes/*`, `_sass/custom/*.scss`, `_config.yml` | Shared. Change only when asked. A change to the sim contract means bumping `API_VERSION` and updating every sim. |
 
 ## Workflow
 

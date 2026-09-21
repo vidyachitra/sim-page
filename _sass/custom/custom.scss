@@ -43,7 +43,8 @@
 
 @container (min-width: 40rem) {
   .sim-layout.has-graphs {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    // Graphs get the larger share: a square canvas grows in height with its width.
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
     grid-template-areas: "main graphs" "controls controls";
     align-items: stretch;
   }

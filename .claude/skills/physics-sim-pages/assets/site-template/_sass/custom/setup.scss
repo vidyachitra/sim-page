@@ -1,0 +1,3 @@
+// Theme variable overrides (imported after support/variables, before layout).
+// Wider content column: the main content is a canvas plus graphs, not prose.
+$content-width: 65rem;   // 1040px; theme default is 50rem
