@@ -123,6 +123,47 @@
     return out;
   }
 
+  // ---------------------------------------------------------------- rich text
+  // Labels may carry subscripts: "V_th", "m_g g" (run of letters/digits after "_") or "f_{s,maks}".
+  function richSegments(str) {
+    const segs = [], re = /_\{([^}]*)\}|_([A-Za-z0-9′+\-−]+)/g;
+    let last = 0, m;
+    while ((m = re.exec(str))) {
+      if (m.index > last) segs.push({ t: str.slice(last, m.index), sub: false });
+      segs.push({ t: m[1] != null ? m[1] : m[2], sub: true });
+      last = re.lastIndex;
+    }
+    if (last < str.length) segs.push({ t: str.slice(last), sub: false });
+    return segs;
+  }
+  // Draws str at (x, y) with the current font/baseline, subscripts at 72 % size and lowered.
+  // Returns the total width; with measureOnly nothing is drawn.
+  function richText(ctx, str, x, y, align = 'left', measureOnly = false) {
+    const segs = richSegments(String(str));
+    if (segs.length === 1 && !segs[0].sub) {
+      if (!measureOnly) { ctx.textAlign = align; ctx.fillText(str, x, y); }
+      return ctx.measureText(str).width;
+    }
+    const font = ctx.font, px = parseFloat((font.match(/(\d+(?:\.\d+)?)px/) || [0, 12])[1]);
+    const subFont = font.replace(/(\d+(?:\.\d+)?)px/, (px * 0.72).toFixed(1) + 'px');
+    const widths = segs.map(g => { ctx.font = g.sub ? subFont : font; return ctx.measureText(g.t).width; });
+    const total = widths.reduce((a, b) => a + b, 0);
+    if (!measureOnly) {
+      let cx = align === 'center' ? x - total / 2 : align === 'right' ? x - total : x;
+      ctx.textAlign = 'left';
+      segs.forEach((g, i) => { ctx.font = g.sub ? subFont : font; ctx.fillText(g.t, cx, y + (g.sub ? px * 0.28 : 0)); cx += widths[i]; });
+      ctx.textAlign = align;
+    }
+    ctx.font = font;
+    return total;
+  }
+  // Same for DOM: returns a span with <sub> children.
+  function richEl(tag, cls, str) {
+    const e = el(tag, cls);
+    richSegments(String(str)).forEach(g => e.appendChild(g.sub ? el('sub', null, g.t) : document.createTextNode(g.t)));
+    return e;
+  }
+
   // ---------------------------------------------------------------- view + drawing
   function makeView(def, w, h, colors) {
     const [x0, x1] = def.view.x, [y0, y1] = def.view.y;
@@ -305,12 +346,12 @@
         ctx.closePath(); ctx.fill();
         if (label) {
           ctx.font = v.font('sm'); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          ctx.fillText(label, bx + ux * 12, by + uy * 12);
+          richText(ctx, label, bx + ux * 12, by + uy * 12, 'center');
         }
       },
       text(x, y, str, color = 'fg', size = 'md', align = 'center') {
         ctx.font = v.font(size); ctx.fillStyle = c(color);
-        ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillText(str, X(x), Y(y));
+        ctx.textBaseline = 'middle'; richText(ctx, str, X(x), Y(y), align);
       },
       // Screen-space bars in the top-left corner. items: [{ value, color: 'ke'|'pe'|'total', label }]
       energyBars(items, max) {
@@ -322,7 +363,7 @@
           const h = Math.max(0, Math.min(1, it.value / m)) * H;
           ctx.strokeStyle = c('grid'); ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, top + 0.5, barW, H);
           ctx.fillStyle = c(it.color); ctx.fillRect(x + 0.5, top + 0.5 + H - h, barW, h);
-          ctx.fillStyle = c('muted'); ctx.fillText(it.label, x + barW / 2, top + H + 4);
+          ctx.fillStyle = c('muted'); richText(ctx, it.label, x + barW / 2, top + H + 4, 'center');
         });
       }
     };
@@ -422,16 +463,15 @@
     ctx.font = fontFor('sm');
     ctx.fillStyle = c('fg');
     const title = g.title + (g.unit ? ` (${g.unit})` : '');
-    ctx.fillText(title, L, T / 2);
-    let lx = L + ctx.measureText(title).width + 14;
+    let lx = L + richText(ctx, title, L, T / 2, 'left') + 14;
     const last = G.n ? (G.head - 1 + G.cap) % G.cap : -1;
     g.series.forEach((s, k) => {
       const v = last < 0 ? NaN : G.y[k][last];
       const txt = s.label + ' ' + (isFinite(v) ? v.toFixed(s.digits == null ? 2 : s.digits) : '—');
-      const tw = ctx.measureText(txt).width;
+      const tw = richText(ctx, txt, 0, 0, 'left', true);
       if (lx + 10 + tw > w - R) return;                    // legend does not fit: skip the rest
       ctx.fillStyle = c(s.color || 'body'); ctx.fillRect(lx, T / 2 - 1.5, 8, 3);
-      ctx.fillStyle = c('muted'); ctx.fillText(txt, lx + 11, T / 2);
+      ctx.fillStyle = c('muted'); richText(ctx, txt, lx + 11, T / 2, 'left');
       lx += 11 + tw + 12;
     });
 
@@ -526,7 +566,7 @@
       const item = el('div', 'sim-readout');
       if (r.color) item.style.borderLeftColor = `var(--sim-${r.color.replace(/(\d)$/, '-$1')})`;
       const val = el('span', 'sim-readout-value', '—');
-      item.append(el('span', 'sim-readout-label', r.label), val);
+      item.append(richEl('span', 'sim-readout-label', r.label), val);
       readoutBox.appendChild(item);
       readoutEls[r.key] = val;
     });
@@ -540,7 +580,7 @@
       const lab = el('label', 'sim-param-label');
       lab.htmlFor = id;
       const name = el('span', 'sim-param-name', q.label);
-      if (q.symbol) name.append(' ', el('span', 'sim-param-symbol', q.symbol));
+      if (q.symbol) name.append(' ', richEl('span', 'sim-param-symbol', q.symbol));
       const out = el('span', 'sim-param-value');
       lab.append(name, out);
       const input = el('input');

@@ -97,7 +97,7 @@ The core owns everything else: play/pause/reset/speed, sliders, readouts, graphs
 - **Defaults are the conservative case** when `conserved` is set, because the checker measures drift at defaults. Put damping and driving on sliders that default to 0.
 - **Assumptions comment** at the top of the file, mirrored in the page's assumptions callout.
 - **No hidden fudge factors.** Visual scales (for example, vector length per m/s) are constants named at the top and listed in the comment.
-- **Symbols match everywhere**: slider `symbol`, readout `label`, the equation, and the page text.
+- **Symbols match everywhere**: slider `symbol`, readout `label`, the equation, and the page text. Labels use a LaTeX-like subscript syntax that the runtime renders on canvas and in the DOM: `V_th`, `m_g g`, `f_{s,maks}` (a run of letters/digits after `_`, or braces). Superscripts use Unicode (`m/s²`, `x²`); Greek letters and ₀…₉ are typed directly (`θ₀`, `ω`).
 
 ## Controls
 
