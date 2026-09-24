@@ -8,7 +8,9 @@
  * fails here, which is the point: physics must be pure.
  * Checks: contract validation · id = filename · 60 s at defaults stays finite ·
  * conserved quantity drift · every min/max corner stays finite and in view ·
- * step cost per frame · page structure and word limits.
+ * live sliders jumped to min/max mid-run stay finite and in view, and settle where a
+ * fresh start settles (warning) · step cost per frame · page structure, word limits
+ * and $$...$$ math delimiters.
  * Exit code 1 if any error.
  */
 'use strict';
@@ -78,39 +80,54 @@ function outOfView(s, p) {
   return null;
 }
 
-function run(p, seconds, label, trackDrift) {
+// Checks one sample: finite state, in view, readout/graph keys present and finite.
+// Returns the measure() result ({} without measure), or null after reporting an error.
+function checkSample(s, p, label, t) {
+  const bad = badNumber(s, 'state');
+  if (bad) { err(`${label}: non-finite ${bad} at t=${t} s`); return null; }
+  const off = outOfView(s, p);
+  if (off) { err(`${label}: object left the view at ${off}, t=${t} s (tighten slider ranges or widen view)`); return null; }
+  if (!def.measure) return {};
+  let m;
+  try { m = def.measure(s, p); } catch (e) { err(`${label}: measure() threw: ${e.message}`); return null; }
+  for (const r of def.readouts || []) {
+    if (!(r.key in m)) { err(`measure() is missing readout key "${r.key}"`); return null; }
+  }
+  for (const g of def.graphs || []) for (const r of g.series) {
+    if (!(r.key in m)) { err(`measure() is missing graph key "${r.key}" (graph "${g.title}")`); return null; }
+    if (!isFinite(m[r.key])) { err(`${label}: graph key "${r.key}" is non-finite at t=${t} s`); return null; }
+  }
+  return m;
+}
+
+// Steps an existing state for `seconds`, checking every 24 steps. onSample(m) sees each measure.
+// Returns false after reporting an error.
+function advance(s, p, seconds, label, tStart = 0, onSample = null) {
   const steps = Math.round(seconds / def.dt);
+  for (let i = 1; i <= steps; i++) {
+    const t = tStart + i * def.dt;
+    try { def.step(s, p, def.dt); } catch (e) { err(`${label}: step() threw at t=${t.toFixed(2)} s: ${e.message}`); return false; }
+    if (i % 24 === 0 || i === steps) {
+      const m = checkSample(s, p, label, t.toFixed(2));
+      if (!m) return false;
+      if (onSample) onSample(m);
+    }
+  }
+  return true;
+}
+
+function run(p, seconds, label, trackDrift) {
   let s;
   try { s = def.init(p); } catch (e) { err(`${label}: init() threw: ${e.message}`); return null; }
   let E0 = null, maxDrift = 0;
   if (trackDrift) E0 = def.measure(s, p)[def.conserved];
+  const onSample = trackDrift ? m => {
+    const d = Math.abs(m[def.conserved] - E0) / Math.max(Math.abs(E0), 1e-12);
+    if (d > maxDrift) maxDrift = d;
+  } : null;
   const t0 = process.hrtime.bigint();
-  for (let i = 1; i <= steps; i++) {
-    try { def.step(s, p, def.dt); } catch (e) { err(`${label}: step() threw at t=${(i * def.dt).toFixed(2)} s: ${e.message}`); return null; }
-    if (i % 24 === 0 || i === steps) {
-      const t = (i * def.dt).toFixed(2);
-      const bad = badNumber(s, 'state');
-      if (bad) { err(`${label}: non-finite ${bad} at t=${t} s`); return null; }
-      const off = outOfView(s, p);
-      if (off) { err(`${label}: object left the view at ${off}, t=${t} s (tighten slider ranges or widen view)`); return null; }
-      if (def.measure) {
-        let m;
-        try { m = def.measure(s, p); } catch (e) { err(`${label}: measure() threw: ${e.message}`); return null; }
-        for (const r of def.readouts || []) {
-          if (!(r.key in m)) { err(`measure() is missing readout key "${r.key}"`); return null; }
-        }
-        for (const g of def.graphs || []) for (const r of g.series) {
-          if (!(r.key in m)) { err(`measure() is missing graph key "${r.key}" (graph "${g.title}")`); return null; }
-          if (!isFinite(m[r.key])) { err(`${label}: graph key "${r.key}" is non-finite at t=${t} s`); return null; }
-        }
-        if (trackDrift) {
-          const d = Math.abs(m[def.conserved] - E0) / Math.max(Math.abs(E0), 1e-12);
-          if (d > maxDrift) maxDrift = d;
-        }
-      }
-    }
-  }
-  const usPerStep = Number(process.hrtime.bigint() - t0) / 1000 / steps;
+  if (!advance(s, p, seconds, label, 0, onSample)) return null;
+  const usPerStep = Number(process.hrtime.bigint() - t0) / 1000 / Math.round(seconds / def.dt);
   return { maxDrift, usPerStep };
 }
 
@@ -144,9 +161,68 @@ if (params.length) {
   }
   if (passed === 1 << n) note(`all ${1 << n} min/max slider corners ran ${10 * TS} s, finite${def.positions ? ' and in view' : ''}`);
 }
+
+// ---------------------------------------------------------------- 3. live slider moves mid-run
+// Users drag live sliders while the sim runs; the corner test above only starts fresh.
+// For each live slider and each extreme: run at defaults, jump the slider, keep running.
+// That run must stay finite and in view (error). If it and a fresh start at the same setting
+// both settle, they should settle to the same values; a mismatch often means a spurious
+// equilibrium (e.g. friction smoothing that lets a stalled motor creep), so it is a warning:
+// real hysteresis or one-way events (a block that already hit its stopper) differ legitimately.
+const SWITCH_AT = 3 * TS, SETTLE = 15 * TS, TAIL = 1 * TS;
+const compareKeys = [...new Set([
+  ...(def.readouts || []).map(r => r.key),
+  ...(def.graphs || []).flatMap(g => g.series.map(r => r.key))
+])];
+
+// Runs to the end, returning the last two tail samples and each key's peak |value|, or null on error.
+function settleRun(p, label, switchAt, key, val) {
+  let s;
+  try { s = def.init(p); } catch (e) { err(`${label}: init() threw: ${e.message}`); return null; }
+  const peak = {};
+  const track = m => compareKeys.forEach(k => { peak[k] = Math.max(peak[k] || 0, Math.abs(m[k])); });
+  if (switchAt > 0) {
+    if (!advance(s, p, switchAt, label, 0, track)) return null;
+    p[key] = val;
+  }
+  if (!advance(s, p, SETTLE - TAIL, label, switchAt, track)) return null;
+  const m1 = def.measure(s, p);
+  if (!advance(s, p, TAIL, label, switchAt + SETTLE - TAIL, track)) return null;
+  return { m1, m2: def.measure(s, p), peak };
+}
+const settled = r => compareKeys.every(k => Math.abs(r.m2[k] - r.m1[k]) <= 1e-3 * r.peak[k] + 1e-9);
+
+const live = params.filter(q => !q.resets);
+if (live.length && def.measure && compareKeys.length) {
+  let runs = 0, ok = true;
+  for (const q of live) {
+    for (const val of [q.min, q.max]) {
+      if (val === q.value) continue;
+      const label = `mid-run {${q.key}: ${q.value} → ${val} at t=${SWITCH_AT} s}`;
+      const moved = settleRun(defaults(), label, SWITCH_AT, q.key, val);
+      if (!moved) { ok = false; break; }
+      const fresh = settleRun(Object.assign(defaults(), { [q.key]: val }), `fresh {${q.key}=${val}}`, 0);
+      if (!fresh) { ok = false; break; }
+      runs++;
+      if (!settled(moved) || !settled(fresh)) continue;              // still moving (oscillator, drift): nothing to compare
+      for (const k of compareKeys) {
+        const a = fresh.m2[k], b = moved.m2[k];
+        const tol = 0.02 * Math.max(Math.abs(a), Math.abs(b)) + 1e-3 * Math.max(fresh.peak[k], moved.peak[k]) + 1e-9;
+        if (Math.abs(a - b) > tol) {
+          warn(`${q.key} = ${val} set mid-run settles to ${k} = ${b.toPrecision(4)}, but a fresh start at ${q.key} = ${val} settles to ${a.toPrecision(4)}. ` +
+            'Check for a spurious equilibrium; ignore if the path dependence is real (hysteresis, a one-way event).');
+          break;
+        }
+      }
+    }
+    if (!ok) break;
+  }
+  if (ok) note(`live sliders: ${runs} mid-run jumps to min/max stayed finite${def.positions ? ' and in view' : ''}`);
+}
+
 if (!def.positions) warn('no positions(): cannot check the scene stays in view');
 
-// ---------------------------------------------------------------- 3. page
+// ---------------------------------------------------------------- 4. page
 if (pagePath) {
   const md = fs.readFileSync(pagePath, 'utf8');
   const fm = (md.match(/^---\r?\n([\s\S]*?)\r?\n---/) || [])[1] || '';
@@ -175,6 +251,14 @@ if (pagePath) {
 
   const eqCount = lines.filter(l => /^\$\$.*\$\$\s*$/.test(l.trim())).length;
   if (eqCount !== 1) err(`page: expected exactly 1 display equation line, found ${eqCount}`);
+
+  // kramdown (math_engine: mathjax) turns only $$...$$ into math, inline or display.
+  // A single $ is printed as a literal dollar sign, so $x$ shows up raw on the page.
+  lines.forEach(l => {
+    if (l.replace(/\$\$[\s\S]*?\$\$/g, '').includes('$')) {
+      err(`page: single $ is not math here, write $$...$$ (inline too): "${l.trim()}"`);
+    }
+  });
 
   const limits = { note: [2, 3, 12], try: [1, 2, 15], assume: [1, 3, 12] };
   for (const [cls, [lo, hi, maxW]] of Object.entries(limits)) {
