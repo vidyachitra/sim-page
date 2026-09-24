@@ -22,7 +22,7 @@
   const J = 0.0005;    // kg·m², momen inersia rotor
   const B = 0.0001;    // N·m·s/rad, gesekan viskos
   const TAU_C = 0.003; // N·m, gesekan Coulomb tetap
-  const OMEGA_REF = 2; // rad/s, lebar penghalusan sign(ω) saat berputar
+  const OMEGA_REF = 0.2; // rad/s, lebar penghalusan sign(ω) saat berputar (sempit agar tak ada titik setimbang semu di kecepatan rendah)
   const OMEGA_LOCK = 1; // rad/s, ambang dianggap diam untuk uji kunci rotor
   const TAU_L_MAX = 0.15; // N·m, slider beban; melebihi τ_em maksimum (Kt·I_sat) mengunci rotor
   const SPIN_SCALE = 0.1; // skala tampilan putaran jarum rotor (bukan ω sebenarnya)

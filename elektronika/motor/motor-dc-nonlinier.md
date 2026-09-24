@@ -15,8 +15,8 @@ $$\tau_{em} = K_t I_{sat} \tanh(i / I_{sat})$$
 
 {: .note }
 > - Arus melonjak saat start karena GGL-balik masih nol.
-> - Torsi menjenuh saat arus melewati $I_{sat}$, membatasi torsi awal.
-> - Beban besar dapat mengunci rotor: $\tau_{em}$ tak pernah melewati ambang tahan.
+> - Torsi menjenuh saat arus melewati $$I_{sat}$$, membatasi torsi awal.
+> - Beban besar dapat mengunci rotor: $$\tau_{em}$$ tak pernah melewati ambang tahan.
 
 {: .try }
 > - Naikkan beban sampai rotor terkunci, lalu turunkan sampai rotor lepas lagi.
@@ -24,5 +24,5 @@ $$\tau_{em} = K_t I_{sat} \tanh(i / I_{sat})$$
 
 {: .assume }
 > - GGL-balik linear terhadap ω; hanya torsi yang menjenuh.
-> - Rotor terkunci diam selama $\tau_{em}$ tak lewati gesekan Coulomb + beban.
+> - Rotor terkunci diam selama $$\tau_{em}$$ tak lewati gesekan Coulomb + beban.
 > - Induktansi bocor dan efek sikat/komutator diabaikan.
