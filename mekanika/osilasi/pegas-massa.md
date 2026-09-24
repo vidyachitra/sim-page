@@ -16,7 +16,7 @@ $$T = 2\pi\sqrt{\frac{m}{k}} \quad\Longrightarrow\quad T^2 = \frac{4\pi^2}{k}\,m
 {: .note }
 > - Grafik $$x$$–$$t$$ sinusoidal; $$v$$ dan $$a$$ bergeser fase seperempat periode.
 > - $$a$$ selalu berlawanan arah dengan $$x$$: $$a = -(k/m)\,x$$.
-> - Dengan $b = 0$, garis $E$ datar; EK dan EP saling bertukar.
+> - Dengan $$b = 0$$, garis $$E$$ datar; EK dan EP saling bertukar.
 
 {: .try }
 > - Gandakan $$m$$ dengan $$k$$ tetap. Apakah $$T$$ menjadi $$\sqrt{2}$$ kali?

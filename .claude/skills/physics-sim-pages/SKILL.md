@@ -168,7 +168,7 @@ $$<one key equation, same symbols as the sliders>$$
 > - <Model assumption, ≤ 12 words>    (1–3 bullets, mirrors the code comment)
 ```
 
-Style: Bahasa Indonesia, present tense, numbers with units (decimal comma), inline math as `$...$` (kramdown). No filler ("Pada simulasi ini kita akan…"), no exclamation marks, no questions in `.note`. `.try` prompts may end with a question. Callout titles are set in `_config.yml` (Perhatikan / Coba / Asumsi model).
+Style: Bahasa Indonesia, present tense, numbers with units (decimal comma), inline math as `$$...$$` inside the sentence (kramdown with `math_engine: mathjax` renders only `$$...$$`, inline or display; a single `$` prints as a literal dollar sign). No filler ("Pada simulasi ini kita akan…"), no exclamation marks, no questions in `.note`. `.try` prompts may end with a question. Callout titles are set in `_config.yml` (Perhatikan / Coba / Asumsi model).
 
 ## Checks
 
@@ -178,8 +178,11 @@ Style: Bahasa Indonesia, present tense, numbers with units (decimal comma), inli
 - every readout and graph key comes out of `measure()` and stays finite (state must hold finite numbers only: no `Infinity` sentinels)
 - 60 s of viewing (60 × timeScale sim seconds) at defaults stays finite, and conserved drift is within tolerance
 - every min/max slider corner runs 10 s, stays finite and stays in view
+- every live slider (no `resets`) jumped to its min and max mid-run stays finite and in view; if that run and a fresh start at the same setting both settle, they must settle to the same values, otherwise a warning (usually a spurious equilibrium, such as friction smoothing that lets a stalled motor creep; ignore only when the path dependence is real, like an object that already landed or hit a stopper)
 - physics cost per frame is reported
-- page structure and word limits are met
+- page structure and word limits are met, and math uses `$$...$$` only (a single `$` prints literally)
+
+`bash scripts/check_all.sh` runs this on every sim with its page; the GitHub Actions workflow `.github/workflows/check-sims.yml` runs it on pushes to `main` and `staging` and on pull requests.
 
 **Manual, for the user after deploy.** List these in your reply:
 - phone in portrait and landscape: no sideways scroll, controls usable
