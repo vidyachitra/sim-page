@@ -9,8 +9,13 @@
  *  - Setelah lepas, torsi lawan = gesekan viskos linear + (gesekan Coulomb + torsi beban) dihaluskan
  *    dengan tanh(ω/ω_ref) agar selalu berlawanan arah putaran.
  *  - Rotor, sikat/komutator dan induktansi bocor diabaikan di luar model R–L jangkar di atas.
+ *  - Termal: kenaikan suhu jangkar ΔT mengikuti model RC satu-order terpisah, C_th dΔT/dt =
+ *    i²R − ΔT/R_th(ω); R_th mengecil dengan |ω| (kipas putaran mendinginkan), jadi rotor yang
+ *    terkunci kehilangan pendinginan itu tepat saat rugi i²R maksimum. Model ini murni tampilan
+ *    peringatan dan tidak memengaruhi R, L atau torsi (tanpa umpan balik termal-elektrik).
  * Integrator: RK4 untuk (i, ω) saat berputar; RK4 1-D untuk i saja saat rotor terkunci (ω dipaksa 0).
- * dt = 1/480 s (rangkaian didorong/teredam, bukan konservatif).
+ * ΔT diperbarui eksak tiap langkah (τ_th jauh lebih lambat dari dt). dt = 1/480 s (rangkaian
+ * didorong/teredam, bukan konservatif).
  * Skala visual (bukan besaran fisis): jarum rotor berputar pada SPIN_SCALE × θ sebenarnya agar
  * terbaca mata; titik muatan bergerak Q_SCALE m per (A·s).
  */
@@ -27,6 +32,13 @@
   const TAU_L_MAX = 0.15; // N·m, slider beban; melebihi τ_em maksimum (Kt·I_sat) mengunci rotor
   const SPIN_SCALE = 0.1; // skala tampilan putaran jarum rotor (bukan ω sebenarnya)
   const Q_SCALE = 0.5;    // m per (A·s), kecepatan tampilan titik arus
+
+  const RTH0 = 3.5;    // °C/W, resistansi termal saat rotor diam (pendinginan terburuk)
+  const K_FAN = 0.05;  // 1/(rad/s), perbaikan pendinginan per laju putaran (efek kipas rotor)
+  const C_TH = 6;       // J/°C, kapasitas termal jangkar
+  const T_WARN = 50;   // °C di atas ambien: mulai memanas (indikator kuning)
+  const T_DANGER = 80; // °C di atas ambien: risiko asap (indikator merah, berkedip)
+  const rTh = omega => RTH0 / (1 + K_FAN * Math.abs(omega));
 
   const tauEm = (i, p) => KT * p.isat * Math.tanh(i / p.isat);
 
@@ -64,7 +76,7 @@
       { title: 'Arus jangkar', unit: 'A', series: [{ key: 'i', label: 'i', color: 'current', digits: 3 }] }
     ],
 
-    init(p) { return { i: 0, omega: 0, theta: 0, t: 0, q: 0 }; },
+    init(p) { return { i: 0, omega: 0, theta: 0, t: 0, q: 0, dT: 0 }; },
 
     step(s, p, dt) {
       const d0 = dynamics(s, p);
@@ -84,11 +96,15 @@
       s.t += dt;
       s.theta = (s.theta + s.omega * SPIN_SCALE * dt) % (2 * Math.PI);
       s.q += s.i * Q_SCALE * dt;
+
+      // Termal: pembaruan eksak (P dan R_th dianggap tetap selama satu langkah dt kecil).
+      const Rth = rTh(s.omega), tau = Rth * C_TH, dTinf = s.i * s.i * R * Rth;
+      s.dT = dTinf + (s.dT - dTinf) * Math.exp(-dt / tau);
     },
 
     measure(s, p) {
       const d = dynamics(s, p);
-      return { i: s.i, omega: s.omega, alpha: d.a, tauEm: d.em, tauR: d.resist, rpm: s.omega * 60 / (2 * Math.PI) };
+      return { i: s.i, omega: s.omega, alpha: d.a, tauEm: d.em, tauR: d.resist, rpm: s.omega * 60 / (2 * Math.PI), dT: s.dT };
     },
 
     positions(s, p) { return [[0, 1], [2.0, 0.5]]; },
@@ -118,6 +134,18 @@
       const frac = p.tauL / TAU_L_MAX, h = 0.12 + 0.35 * frac;
       d.rect(cx + rM + 0.02, cy - h / 2, 0.09, h, 'body2');
       d.text(cx + rM + 0.06, cy - h / 2 - 0.1, 'beban', 'muted', 'sm');
+
+      // indikator suhu: batang termometer di sisi kiri rotor, memerah dan berkedip saat berbahaya
+      const tFrac = Math.min(1, s.dT / T_DANGER);
+      const tColor = s.dT >= T_DANGER ? 'vector' : s.dT >= T_WARN ? 'ke' : 'vector2';
+      const barX = cx - rM - 0.16, barY0 = cy - 0.35, barH = 0.7;
+      d.rect(barX, barY0, 0.06, barH, 'grid');
+      d.rect(barX, barY0, 0.06, barH * tFrac, tColor);
+      d.text(barX + 0.03, barY0 - 0.09, 'suhu', 'muted', 'sm');
+      d.text(barX + 0.03, barY0 + barH + 0.1, `+${s.dT.toFixed(0)} °C`, tColor, 'sm');
+      if (s.dT >= T_DANGER && Math.sin(s.t * 6) > 0) {
+        d.text(cx, cy + rM + 0.16, '⚠ panas berlebih — berisiko berasap', 'vector', 'sm');
+      }
 
       d.text(1.0, -0.55, `i = ${s.i.toFixed(2)} A`, 'current', 'sm');
       d.text(1.0, -0.72, `ω = ${s.omega.toFixed(1)} rad/s (${(s.omega * 60 / (2 * Math.PI)).toFixed(0)} rpm)`, 'vector2', 'sm');
