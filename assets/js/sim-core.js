@@ -483,8 +483,11 @@
     if (hi - lo < 1e-9) { const pad = Math.max(1e-6, Math.abs(hi) * 0.1, 0.5); lo -= pad; hi += pad; }
     const ystep = niceStep(hi - lo, 4);
     const snap = 1e-3;                                   // ignore sub-pixel overshoot past a tick
+    const rawHi = hi;
     if (g.min == null) lo = Math.floor(lo / ystep + snap) * ystep;
     if (g.max == null) hi = Math.ceil(hi / ystep - snap) * ystep;
+    // A trace lying exactly on the top frame line (e.g. a constant 300 K) is invisible: add a tick.
+    if (g.max == null && hi - rawHi < ystep * 0.02) hi += ystep;
     const yd = tickDigits(ystep);
 
     // x range: the last `window` seconds, growing from 0 until the window fills.
