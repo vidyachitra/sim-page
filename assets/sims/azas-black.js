@@ -46,7 +46,7 @@
     dt: 1 / 120,
 
     params: [
-      { key: 'bahan', label: 'Bahan A (1 besi · 2 aluminium · 3 tembaga · 4 air)', symbol: '', unit: '', min: 1, max: 4, step: 1, value: 1, resets: true },
+      { key: 'bahan', label: 'Bahan A', symbol: '', unit: '', min: 1, max: 4, step: 1, value: 1, resets: true, options: ['besi', 'aluminium', 'tembaga', 'air'] },
       { key: 'mA', label: 'Massa benda A', symbol: 'm_A', unit: 'g', min: 20, max: 500, step: 10, value: 200, resets: true },
       { key: 'TA', label: 'Suhu awal A', symbol: 'T_A', unit: '°C', min: 30, max: 100, step: 1, value: 90, resets: true },
       { key: 'mB', label: 'Massa air B', symbol: 'm_B', unit: 'g', min: 50, max: 500, step: 10, value: 200, resets: true },

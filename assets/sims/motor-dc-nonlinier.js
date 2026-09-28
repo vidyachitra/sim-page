@@ -113,7 +113,7 @@
       const dyn = dynamics(s, p);
 
       // rangkaian jangkar: sumber - R - L - motor
-      d.source(0, 0, 0, 1, `V = ${p.V.toFixed(1)} V`, false, -1);
+      d.source(0, 0, 0, 1, `V = ${p.V.toFixed(1)} V`, false, 1);
       d.resistor(0, 1, 0.7, 1, `R = ${R} Ω`, 1);
       d.inductor(0.7, 1, 1.3, 1, `L = ${L * 1e3} mH`, 1);
       d.wire([[1.3, 1], [1.55, 1], [2.0, 0.9]]);
@@ -142,7 +142,7 @@
       d.rect(barX, barY0, 0.06, barH, 'grid');
       d.rect(barX, barY0, 0.06, barH * tFrac, tColor);
       d.text(barX + 0.03, barY0 - 0.09, 'suhu', 'muted', 'sm');
-      d.text(barX + 0.03, barY0 + barH + 0.1, `+${s.dT.toFixed(0)} °C`, tColor, 'sm');
+      d.text(barX + 0.03, barY0 - 0.24, `+${s.dT.toFixed(0)} °C`, tColor, 'sm');
       if (s.dT >= T_DANGER && Math.sin(s.t * 6) > 0) {
         d.text(cx, cy + rM + 0.16, '⚠ panas berlebih — berisiko berasap', 'vector', 'sm');
       }

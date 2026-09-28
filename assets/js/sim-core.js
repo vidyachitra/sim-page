@@ -70,6 +70,11 @@
         if (!(q.min < q.max)) e.push(`${n}: min must be < max`);
         if (!(q.step > 0)) e.push(`${n}.step must be > 0`);
         if (!(q.value >= q.min && q.value <= q.max)) e.push(`${n}.value must be within [min, max]`);
+        if (q.options != null) {
+          const count = Math.round((q.max - q.min) / q.step) + 1;
+          if (!Array.isArray(q.options) || q.options.some(o => typeof o !== 'string' || !o)) e.push(`${n}.options must be an array of non-empty strings`);
+          else if (q.options.length !== count) e.push(`${n}.options has ${q.options.length} names but the slider has ${count} positions`);
+        }
       });
     }
 
@@ -137,10 +142,14 @@
     if (last < str.length) segs.push({ t: str.slice(last), sub: false });
     return segs;
   }
+  // Indonesian decimal comma: "12.5" → "12,5" in every number the runtime prints, including sim
+  // canvas text. A dot between digits is always a decimal point here (write times as 20:03).
+  const dec = s => String(s).replace(/(\d)\.(\d)/g, '$1,$2');
   // Draws str at (x, y) with the current font/baseline, subscripts at 72 % size and lowered.
   // Returns the total width; with measureOnly nothing is drawn.
   function richText(ctx, str, x, y, align = 'left', measureOnly = false) {
-    const segs = richSegments(String(str));
+    str = dec(str);
+    const segs = richSegments(str);
     if (segs.length === 1 && !segs[0].sub) {
       if (!measureOnly) { ctx.textAlign = align; ctx.fillText(str, x, y); }
       return ctx.measureText(str).width;
@@ -161,7 +170,7 @@
   // Same for DOM: returns a span with <sub> children.
   function richEl(tag, cls, str) {
     const e = el(tag, cls);
-    richSegments(String(str)).forEach(g => e.appendChild(g.sub ? el('sub', null, g.t) : document.createTextNode(g.t)));
+    richSegments(dec(str)).forEach(g => e.appendChild(g.sub ? el('sub', null, g.t) : document.createTextNode(g.t)));
     return e;
   }
 
@@ -511,7 +520,7 @@
     for (let v = lo; v <= hi + ystep * 1e-6; v += ystep) {
       const y = Math.round(Y(v)) + 0.5;
       ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
-      ctx.fillText(v.toFixed(yd), L - 4, y);
+      ctx.fillText(dec(v.toFixed(yd)), L - 4, y);
     }
     ctx.textBaseline = 'top'; ctx.textAlign = 'center';
     const xd = tickDigits(xstep * tu[1]);
@@ -520,7 +529,7 @@
     for (let t = Math.ceil(x0 / xstep - 1e-9) * xstep; t <= x1 + xstep * 1e-6; t += xstep) {
       const x = Math.round(X(t)) + 0.5;
       ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke();
-      const txt = (t * tu[1]).toFixed(xd);
+      const txt = dec((t * tu[1]).toFixed(xd));
       if (x + ctx.measureText(txt).width / 2 <= labelLeft) ctx.fillText(txt, x, T + ph + 4);
     }
     ctx.textAlign = 'right'; ctx.fillText(axisLabel, L + pw, T + ph + 4);
@@ -581,10 +590,17 @@
     const s = String(step);
     return s.includes('e-') ? parseInt(s.split('e-')[1], 10) : (s.split('.')[1] || '').length;
   }
-  function unitText(unit) { return !unit ? '' : (/^[°′″%]/.test(unit) ? unit : ' ' + unit); }
+  // No space before a bare angle mark or percent ("40°", "5%"); a space before every other unit,
+  // including °C and °F ("50,0 °C", SI style).
+  function unitText(unit) { return !unit ? '' : (/^(°|′|″|%)$/.test(unit) ? unit : ' ' + unit); }
   function fmt(v, d = 2) {
     if (!isFinite(v)) return '—';
-    return (Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v).toFixed(d);
+    return dec((Math.abs(v) < 0.5 * Math.pow(10, -d) ? 0 : v).toFixed(d)).replace(/^-/, '−');
+  }
+  // Slider value text: the option name for mode sliders, otherwise the number with its unit.
+  function paramText(q, v) {
+    if (q.options) return q.options[Math.round((v - q.min) / q.step)] || '—';
+    return fmt(v, decimals(q.step)) + unitText(q.unit);
   }
   function readColors(node) {
     const cs = getComputedStyle(node), out = {};
@@ -658,8 +674,7 @@
       lab.append(name, out);
       const input = el('input');
       Object.assign(input, { type: 'range', id, min: q.min, max: q.max, step: q.step, value: q.value });
-      const digits = decimals(q.step);
-      const show = () => { out.textContent = Number(p[q.key]).toFixed(digits) + unitText(q.unit); };
+      const show = () => { out.textContent = paramText(q, Number(p[q.key])); input.setAttribute('aria-valuetext', out.textContent); };
       input.addEventListener('input', () => {
         p[q.key] = parseFloat(input.value);
         show();

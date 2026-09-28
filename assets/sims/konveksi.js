@@ -93,7 +93,7 @@
     dt: 1 / 120,
 
     params: [
-      { key: 'pos', label: 'Posisi pemanas (1 kiri bawah · 2 tengah bawah · 3 atas)', unit: '', min: 1, max: 3, step: 1, value: 1, resets: true },
+      { key: 'pos', label: 'Posisi pemanas', unit: '', min: 1, max: 3, step: 1, value: 1, resets: true, options: ['kiri bawah', 'tengah bawah', 'atas'] },
       { key: 'P', label: 'Daya pemanas', symbol: 'P', unit: 'W', min: 0, max: 500, step: 10, value: 300 }
     ],
 

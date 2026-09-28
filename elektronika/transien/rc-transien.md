@@ -20,7 +20,7 @@ $$v_C(t) = V\left(1 - e^{-t/RC}\right), \qquad i(t) = \frac{V}{R}\,e^{-t/RC}$$
 
 {: .try }
 > - Gandakan $$R$$ lalu gandakan $$C$$. Mana yang mengubah $$\tau$$? Keduanya?
-> - Pindahkan saklar ke 0 saat $$v_C$$ baru setengah. Bagaimana bentuk kurva pengosongan?
+> - Pindahkan saklar ke kosongkan saat $$v_C$$ baru setengah. Bagaimana bentuk kurva pengosongan?
 
 {: .assume }
 > - Nilai komponen nyata: $$\tau$$ dalam ms; tampilan diperlambat 1000 kali.

@@ -32,7 +32,7 @@
       { key: 'Im', label: 'Arus motor (saat hidup)', symbol: 'I_m', unit: 'A', min: 0, max: 5, step: 0.1, value: 2 },
       { key: 'Rg', label: 'Hambatan kawat kembali', symbol: 'R_g', unit: 'Ω', min: 0, max: 2, step: 0.05, value: 0.5 },
       { key: 'Vs', label: 'Tegangan sensor', symbol: 'V_s', unit: 'V', min: 0, max: 5, step: 0.1, value: 1 },
-      { key: 'topo', label: 'Topologi (0 bersama, 1 bintang)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0 }
+      { key: 'topo', label: 'Topologi', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0, options: ['bersama', 'bintang'] }
     ],
 
     graphs: [

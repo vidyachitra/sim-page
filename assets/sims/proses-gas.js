@@ -99,9 +99,9 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'proc', label: 'Proses (1 isotermal · 2 isobarik · 3 isokhorik · 4 adiabatik)', unit: '', min: 1, max: 4, step: 1, value: 1, resets: true },
+      { key: 'proc', label: 'Proses', unit: '', min: 1, max: 4, step: 1, value: 1, resets: true, options: ['isotermal', 'isobarik', 'isokhorik', 'adiabatik'] },
       { key: 'ratio', label: 'Rasio akhir (V akhir/awal; isokhorik: T akhir/awal)', unit: '', min: 0.3, max: 3, step: 0.1, value: 2, resets: true },
-      { key: 'gas', label: 'Gas (1 monoatomik · 2 diatomik)', unit: '', min: 1, max: 2, step: 1, value: 1, resets: true },
+      { key: 'gas', label: 'Gas', unit: '', min: 1, max: 2, step: 1, value: 1, resets: true, options: ['monoatomik', 'diatomik'] },
       { key: 'n', label: 'Jumlah zat', symbol: 'n', unit: 'mol', min: 0.5, max: 2, step: 0.1, value: 1, resets: true },
       { key: 'T0', label: 'Suhu awal', symbol: 'T_awal', unit: 'K', min: 200, max: 600, step: 10, value: 300, resets: true }
     ],

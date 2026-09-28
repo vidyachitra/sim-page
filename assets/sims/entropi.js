@@ -54,9 +54,9 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'mode', label: 'Mode (1 ekspansi bebas · 2 pencampuran dua warna)', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 1, resets: true },
+      { key: 'mode', label: 'Mode', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 1, resets: true, options: ['ekspansi bebas', 'pencampuran dua warna'] },
       { key: 'N', label: 'Jumlah partikel', symbol: 'N', unit: '', min: 4, max: 200, step: 2, value: 60, resets: true },
-      { key: 'sekat', label: 'Sekat (1 tertutup · 0 dibuka)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1 }
+      { key: 'sekat', label: 'Sekat', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1, options: ['dibuka', 'tertutup'] }
     ],
 
     graphs: [
@@ -119,7 +119,7 @@
       else { d.line(0, 0, 0, 0.04, 'muted', 2); d.line(0, H - 0.04, 0, H, 'muted', 2); }
       const rp = s.n > 120 ? 2.5 : 3.5;
       for (let i = 0; i < s.n; i++) d.dot(s.x[i], s.y[i], rp, s.col[i] ? 'body2' : 'body');
-      d.text(-W, H + 0.07, s.mode === 2 ? 'Mode 2: pencampuran dua warna' : 'Mode 1: ekspansi bebas', 'fg', 'sm', 'left');
+      d.text(-W, H + 0.07, s.mode === 2 ? 'Pencampuran dua warna' : 'Ekspansi bebas', 'fg', 'sm', 'left');
       d.text(W, H + 0.07, closed ? 'sekat tertutup' : 'sekat dibuka', closed ? 'fg' : 'vector', 'sm', 'right');
 
       // Batang jumlah kiri/kanan (bertumpuk per warna).

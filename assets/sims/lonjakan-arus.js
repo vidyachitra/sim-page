@@ -28,7 +28,7 @@
     timeScale: TS,
 
     params: [
-      { key: 'sw', label: 'Saklar (0 buka, 1 tutup)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0 },
+      { key: 'sw', label: 'Saklar', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0, options: ['buka', 'tutup'] },
       { key: 'C', label: 'Kapasitor', symbol: 'C', unit: 'µF', min: 100, max: 4700, step: 100, value: 1000 },
       { key: 'Rw', label: 'Hambatan kawat + ESR', symbol: 'R_w', unit: 'Ω', min: 0.05, max: 2, step: 0.05, value: 0.1 },
       { key: 'Rpre', label: 'Resistor pembatas', symbol: 'R_pre', unit: 'Ω', min: 0, max: 50, step: 0.5, value: 0 },

@@ -32,7 +32,7 @@
     timeScale: TS,
 
     params: [
-      { key: 'jenis', label: 'Jenis (0 inverting, 1 non-inverting)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0 },
+      { key: 'jenis', label: 'Jenis', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0, options: ['inverting', 'non-inverting'] },
       { key: 'Rf', label: 'Resistor umpan balik', symbol: 'R_f', unit: 'kΩ', min: 1, max: 100, step: 1, value: 10 },
       { key: 'Rin', label: 'Resistor masukan', symbol: 'R_in', unit: 'kΩ', min: 1, max: 100, step: 1, value: 1 },
       { key: 'Vm', label: 'Amplitudo masukan', symbol: 'V_m', unit: 'V', min: 0, max: 3, step: 0.05, value: 0.5 },

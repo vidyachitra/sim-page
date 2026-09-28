@@ -164,7 +164,7 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'cyc', label: 'Siklus (1 Carnot · 2 Otto · 3 pendingin Carnot)', unit: '', min: 1, max: 3, step: 1, value: 1, resets: true },
+      { key: 'cyc', label: 'Siklus', unit: '', min: 1, max: 3, step: 1, value: 1, resets: true, options: ['Carnot', 'Otto', 'pendingin Carnot'] },
       { key: 'TH', label: 'Suhu reservoir panas', symbol: 'T_H', unit: 'K', min: 400, max: 1200, step: 10, value: 600 },
       { key: 'TC', label: 'Suhu reservoir dingin', symbol: 'T_C', unit: 'K', min: 200, max: 400, step: 10, value: 300 },
       { key: 'r', label: 'Rasio kompresi (Otto)', symbol: 'r', unit: '', min: 2, max: 12, step: 0.5, value: 5 },

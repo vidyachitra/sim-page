@@ -35,11 +35,11 @@
     timeScale: TS,
 
     params: [
-      { key: 'sw', label: 'Saklar (0 buka, 1 tutup)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1 },
+      { key: 'sw', label: 'Saklar', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1, options: ['buka', 'tutup'] },
       { key: 'R', label: 'Resistor', symbol: 'R', unit: 'Ω', min: 1, max: 100, step: 1, value: 10 },
       { key: 'L', label: 'Induktor', symbol: 'L', unit: 'mH', min: 1, max: 100, step: 1, value: 10 },
       { key: 'Roff', label: 'Hambatan celah saklar', symbol: 'R_off', unit: 'kΩ', min: 0.1, max: 10, step: 0.1, value: 1 },
-      { key: 'diode', label: 'Dioda flyback (0 tanpa, 1 ada)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0 }
+      { key: 'diode', label: 'Dioda flyback', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0, options: ['tanpa', 'ada'] }
     ],
 
     graphs: [

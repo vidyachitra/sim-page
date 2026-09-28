@@ -27,7 +27,7 @@
       { key: 'V', label: 'Tegangan sumber', symbol: 'V', unit: 'V', min: 0, max: 24, step: 0.5, value: 12 },
       { key: 'R', label: 'Resistor', symbol: 'R', unit: 'Ω', min: 1, max: 100, step: 1, value: 10 },
       { key: 'L', label: 'Induktor', symbol: 'L', unit: 'mH', min: 1, max: 100, step: 1, value: 10 },
-      { key: 'sw', label: 'Saklar (0 lepas, 1 hubungkan)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1 }
+      { key: 'sw', label: 'Saklar', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1, options: ['lepas', 'hubungkan'] }
     ],
 
     graphs: [

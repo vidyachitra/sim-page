@@ -93,7 +93,7 @@
 
     params: [
       { key: 'Tair', label: 'Suhu udara', symbol: 'T_udara', unit: '°C', min: -15, max: 15, step: 1, value: -10 },
-      { key: 'anom', label: 'Anomali (1 air asli · 0 cairan biasa)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1, resets: true }
+      { key: 'anom', label: 'Anomali', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1, resets: true, options: ['cairan biasa', 'air asli'] }
     ],
 
     graphs: [

@@ -75,8 +75,8 @@
     params: [
       { key: 'VB', label: 'Volume akhir', symbol: 'V_B', unit: 'L', min: 5, max: 30, step: 1, value: 25 },
       { key: 'PB', label: 'Tekanan akhir', symbol: 'P_B', unit: 'kPa', min: 50, max: 300, step: 10, value: 100 },
-      { key: 'path', label: 'Lintasan (1 isobarik lalu isokhorik · 2 isokhorik lalu isobarik · 3 garis lurus)', unit: '', min: 1, max: 3, step: 1, value: 1, resets: true },
-      { key: 'gas', label: 'Gas (1 monoatomik · 2 diatomik)', unit: '', min: 1, max: 2, step: 1, value: 1 }
+      { key: 'path', label: 'Lintasan', unit: '', min: 1, max: 3, step: 1, value: 1, resets: true, options: ['isobarik lalu isokhorik', 'isokhorik lalu isobarik', 'garis lurus'] },
+      { key: 'gas', label: 'Gas', unit: '', min: 1, max: 2, step: 1, value: 1, options: ['monoatomik', 'diatomik'] }
     ],
 
     graphs: [

@@ -54,9 +54,9 @@
     driftTolerance: 1e-9,
 
     params: [
-      { key: 'ic', label: 'Kondisi awal (1 dingin merata · 2 titik panas di tengah · 3 setengah panas)', symbol: '', unit: '', min: 1, max: 3, step: 1, value: 3, resets: true },
-      { key: 'bl', label: 'Batas kiri (1 suhu tetap 100 °C · 2 terisolasi)', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 2 },
-      { key: 'br', label: 'Batas kanan (1 suhu tetap 0 °C · 2 terisolasi)', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 2 },
+      { key: 'ic', label: 'Kondisi awal', symbol: '', unit: '', min: 1, max: 3, step: 1, value: 3, resets: true, options: ['dingin merata', 'titik panas di tengah', 'setengah panas'] },
+      { key: 'bl', label: 'Batas kiri', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 2, options: ['suhu tetap 100 °C', 'terisolasi'] },
+      { key: 'br', label: 'Batas kanan', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 2, options: ['suhu tetap 0 °C', 'terisolasi'] },
       { key: 'r', label: 'Bilangan difusi DΔt/Δx²', symbol: 'r', unit: '', min: 0.05, max: 0.6, step: 0.01, value: 0.25 }
     ],
 

@@ -28,7 +28,7 @@
       { key: 'Vm', label: 'Amplitudo sumber', symbol: 'V_m', unit: 'V', min: 2, max: 30, step: 0.5, value: 12 },
       { key: 'C', label: 'Kapasitor tapis', symbol: 'C', unit: 'µF', min: 0, max: 2200, step: 10, value: 470 },
       { key: 'RL', label: 'Beban', symbol: 'R_L', unit: 'kΩ', min: 0.1, max: 10, step: 0.1, value: 1 },
-      { key: 'jenis', label: 'Jenis (0 setengah, 1 penuh)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0 }
+      { key: 'jenis', label: 'Jenis', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0, options: ['setengah', 'penuh'] }
     ],
 
     graphs: [

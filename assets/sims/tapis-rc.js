@@ -30,7 +30,7 @@
       { key: 'f', label: 'Frekuensi sinyal', symbol: 'f', unit: 'kHz', min: 0.1, max: 10, step: 0.1, value: 1 },
       { key: 'R', label: 'Resistor', symbol: 'R', unit: 'kΩ', min: 0.1, max: 10, step: 0.1, value: 1 },
       { key: 'C', label: 'Kapasitor', symbol: 'C', unit: 'µF', min: 0.01, max: 1, step: 0.01, value: 0.1 },
-      { key: 'jenis', label: 'Jenis (0 lolos-rendah, 1 lolos-tinggi)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0 },
+      { key: 'jenis', label: 'Jenis', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 0, options: ['lolos-rendah', 'lolos-tinggi'] },
       { key: 'Vm', label: 'Amplitudo masukan', symbol: 'V_m', unit: 'V', min: 0, max: 5, step: 0.1, value: 1 }
     ],
 

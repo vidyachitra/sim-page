@@ -153,7 +153,7 @@
 
       // jam, skala waktu, legenda suhu
       const hh = Math.floor(h), mm = Math.floor((h - hh) * 60);
-      d.text(-1.08, 0.84, `pukul ${String(hh).padStart(2, '0')}.${String(mm).padStart(2, '0')}`, 'fg', 'md', 'left');
+      d.text(-1.08, 0.84, `pukul ${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`, 'fg', 'md', 'left');
       d.text(-1.08, 0.84 - px(18), '1 s = 1 jam', 'muted', 'sm', 'left');
       const lx = 0.42, ly = 0.83, lw = 0.36;
       for (let k = 0; k < 20; k++) d.rect(lx + lw * k / 20, ly, lw / 20 + 0.002, 0.03, d.heat((k + 0.5) / 20));

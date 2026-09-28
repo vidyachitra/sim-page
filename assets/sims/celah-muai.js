@@ -52,7 +52,7 @@
     dt: 1 / 120,
 
     params: [
-      { key: 'kind', label: 'Struktur (1 rel kereta · 2 jembatan)', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 1, resets: true },
+      { key: 'kind', label: 'Struktur', symbol: '', unit: '', min: 1, max: 2, step: 1, value: 1, resets: true, options: ['rel kereta', 'jembatan'] },
       { key: 'L0', label: 'Panjang segmen', symbol: 'L₀', unit: 'm', min: 10, max: 100, step: 5, value: 25 },
       { key: 'g0', label: 'Celah saat pemasangan', symbol: 'g₀', unit: 'mm', min: 0, max: 30, step: 1, value: 8 },
       { key: 'Tp', label: 'Suhu pemasangan', symbol: 'T_pasang', unit: '°C', min: 0, max: 40, step: 1, value: 25 },

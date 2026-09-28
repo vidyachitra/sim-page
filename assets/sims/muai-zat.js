@@ -70,7 +70,7 @@
     dt: 1 / 120,
 
     params: [
-      { key: 'mode', label: 'Wujud (1 batang · 2 pelat · 3 kubus · 4 cairan · 5 gas)', symbol: '', unit: '', min: 1, max: 5, step: 1, value: 1, resets: true },
+      { key: 'mode', label: 'Wujud', symbol: '', unit: '', min: 1, max: 5, step: 1, value: 1, resets: true, options: ['batang', 'pelat', 'kubus', 'cairan', 'gas'] },
       { key: 'alpha', label: 'Koefisien muai panjang', symbol: 'α', unit: '×10⁻⁶ /K', min: 1, max: 30, step: 1, value: 12 },
       { key: 'Th', label: 'Suhu pemanas', symbol: 'T_p', unit: '°C', min: 0, max: 300, step: 5, value: 200 }
     ],
@@ -101,7 +101,7 @@
       const col = d.heat(heatF(s.T));
       const solid = m <= 3;
 
-      d.text(0.1, 2.86, `${m}. ${MODES[m - 1]}`, 'fg', 'md', 'left');
+      d.text(0.1, 2.86, MODES[m - 1], 'fg', 'md', 'left');
       d.text(0.1, 2.64, solid ? `pertambahan diperbesar ${MAG}× · garis = ukuran awal (20 °C)`
         : m === 4 ? 'kolom kapiler dalam cm nyata (tanpa perbesaran)' : 'tanpa perbesaran · garis = volume awal (20 °C)',
         'muted', 'sm', 'left');

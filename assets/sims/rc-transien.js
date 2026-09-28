@@ -28,7 +28,7 @@
       { key: 'V', label: 'Tegangan sumber', symbol: 'V', unit: 'V', min: 0, max: 24, step: 0.5, value: 12 },
       { key: 'R', label: 'Resistor', symbol: 'R', unit: 'kΩ', min: 0.1, max: 10, step: 0.1, value: 1 },
       { key: 'C', label: 'Kapasitor', symbol: 'C', unit: 'µF', min: 0.1, max: 10, step: 0.1, value: 1 },
-      { key: 'sw', label: 'Saklar (0 kosongkan, 1 isi)', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1 }
+      { key: 'sw', label: 'Saklar', symbol: '', unit: '', min: 0, max: 1, step: 1, value: 1, options: ['kosongkan', 'isi'] }
     ],
 
     graphs: [

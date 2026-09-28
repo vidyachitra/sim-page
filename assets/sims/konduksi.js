@@ -71,8 +71,8 @@
     dt: 1 / 240,
 
     params: [
-      { key: 'm1', label: 'Bahan batang 1 (1 tembaga · 2 aluminium · 3 besi · 4 kaca · 5 kayu)', symbol: '', unit: '', min: 1, max: 5, step: 1, value: 1, resets: true },
-      { key: 'm2', label: 'Bahan batang 2 (1 tembaga · 2 aluminium · 3 besi · 4 kaca · 5 kayu)', symbol: '', unit: '', min: 1, max: 5, step: 1, value: 3, resets: true },
+      { key: 'm1', label: 'Bahan batang 1', symbol: '', unit: '', min: 1, max: 5, step: 1, value: 1, resets: true, options: ['tembaga', 'aluminium', 'besi', 'kaca', 'kayu'] },
+      { key: 'm2', label: 'Bahan batang 2', symbol: '', unit: '', min: 1, max: 5, step: 1, value: 3, resets: true, options: ['tembaga', 'aluminium', 'besi', 'kaca', 'kayu'] },
       { key: 'Th', label: 'Suhu reservoir panas', symbol: 'T_panas', unit: '°C', min: 20, max: 100, step: 1, value: 100 },
       { key: 'Tc', label: 'Suhu reservoir dingin', symbol: 'T_dingin', unit: '°C', min: 0, max: 40, step: 1, value: 20 }
     ],

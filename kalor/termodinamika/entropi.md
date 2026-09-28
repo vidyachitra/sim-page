@@ -25,4 +25,4 @@ $$S = k \ln \Omega$$
 {: .assume }
 > - Partikel ideal tanpa tumbukan antarpartikel, hanya pantulan dinding.
 > - Entropi butir kasar: hanya dihitung kiri atau kanan.
-> - $$\Omega = \binom{N}{n_{kiri}}$$; mode 2 mengalikan dua koefisien binomial.
+> - $$\Omega = \binom{N}{n_{kiri}}$$; mode pencampuran mengalikan dua koefisien binomial.
