@@ -3,11 +3,15 @@
  *  - Sumber ideal V, dua resistor R₁–R₂, beban R_L paralel dengan R₂. Kawat tanpa hambatan.
  *  - Keadaan tunak (DC): V_out = V·R_p/(R₁+R_p) dengan R_p = R₂‖R_L. Penggeser bekerja langsung.
  *  - R_L pada nilai maksimum penggeser dianggap "hampir tanpa beban".
- * Animasi: titik muatan bergerak sebanding arus cabang (skala 8 mm/s per mA), hanya visual.
+ * Animasi: titik muatan bergerak sebanding arus cabang (80 mm/s per mA), hanya visual; dibatasi
+ * V_MAX = 1,2 m/s agar tidak berkedip pada R kecil (arus hingga ~160 mA), jadi di atas ~15 mA
+ * kecepatan titik tidak lagi sebanding arus.
  * Satuan internal SI (Ω, A); penggeser dalam kΩ, grafik dalam mA.
  */
 (function () {
-  const K = 0.008;                       // m/s per mA, kecepatan titik muatan
+  const K = 0.08;                        // m/s per mA, kecepatan titik muatan
+  const V_MAX = 1.2;                     // m/s, batas atas kecepatan titik (di bawah batas kedip)
+  const dotSpeed = i => Math.min(i * 1e3 * K, V_MAX);
   const N = [0.9, 1.0];                  // simpul V_out
   const P_SRC = [[0, 0], [0, 1]], P_R1 = [[0.3, 1], [0.9, 1]], P_R2 = [[0.9, 1], [0.9, 0]], P_RL = [[1.5, 1], [1.5, 0]];
 
@@ -50,7 +54,7 @@
 
     step(st, p, dt) {
       const s = solve(p);
-      st.q1 += s.i1 * 1e3 * K * dt; st.q2 += s.i2 * 1e3 * K * dt; st.qL += s.iL * 1e3 * K * dt;
+      st.q1 += dotSpeed(s.i1) * dt; st.q2 += dotSpeed(s.i2) * dt; st.qL += dotSpeed(s.iL) * dt;
     },
 
     measure(st, p) {
