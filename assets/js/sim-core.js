@@ -125,9 +125,9 @@
   }
 
   // ---------------------------------------------------------------- rich text
-  // Labels may carry subscripts: "V_th", "m_g g" (run of letters/digits after "_") or "f_{s,maks}".
+  // Labels may carry subscripts: "V_th", "B_λ", "m_g g" (run of Latin/Greek letters or digits after "_") or "f_{s,maks}".
   function richSegments(str) {
-    const segs = [], re = /_\{([^}]*)\}|_([A-Za-z0-9′+\-−]+)/g;
+    const segs = [], re = /_\{([^}]*)\}|_([A-Za-z0-9α-ωΑ-Ω′+\-−]+)/g;
     let last = 0, m;
     while ((m = re.exec(str))) {
       if (m.index > last) segs.push({ t: str.slice(last, m.index), sub: false });
