@@ -7,3 +7,6 @@ physics-sim-pages.skill
 Gemfile.lock
 vendor/
 .bundle/
+
+# Claude Code agent worktrees
+.claude/worktrees/
