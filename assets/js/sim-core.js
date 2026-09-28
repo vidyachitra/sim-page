@@ -512,12 +512,15 @@
     }
     ctx.textBaseline = 'top'; ctx.textAlign = 'center';
     const xd = tickDigits(xstep * tu[1]);
+    const axisLabel = `t (${tu[0]})`;
+    const labelLeft = L + pw - ctx.measureText(axisLabel).width - 6;   // tick labels must end before this
     for (let t = Math.ceil(x0 / xstep - 1e-9) * xstep; t <= x1 + xstep * 1e-6; t += xstep) {
       const x = Math.round(X(t)) + 0.5;
       ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, T + ph); ctx.stroke();
-      ctx.fillText((t * tu[1]).toFixed(xd), x, T + ph + 4);
+      const txt = (t * tu[1]).toFixed(xd);
+      if (x + ctx.measureText(txt).width / 2 <= labelLeft) ctx.fillText(txt, x, T + ph + 4);
     }
-    ctx.textAlign = 'right'; ctx.fillText(`t (${tu[0]})`, L + pw, T + ph + 4);
+    ctx.textAlign = 'right'; ctx.fillText(axisLabel, L + pw, T + ph + 4);
     if (lo < 0 && hi > 0) {                              // zero line
       const y = Math.round(Y(0)) + 0.5;
       ctx.strokeStyle = c('muted'); ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(L + pw, y); ctx.stroke();
