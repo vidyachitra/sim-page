@@ -18,6 +18,12 @@
   --sim-accent: #7253ed;    // matches Just the Docs purple
   --sim-current: #d55e00;   // charge dots, current traces
   --sim-voltage: #0072b2;   // voltage traces
+  // Temperature scale, cold → hot (Okabe–Ito hues). Sims use d.heat(f), never these directly.
+  --sim-cold: #0072b2;
+  --sim-cool: #56b4e9;
+  --sim-mild: #f0e442;
+  --sim-warm: #e69f00;
+  --sim-hot: #d55e00;
   --sim-radius: 6px;
 }
 

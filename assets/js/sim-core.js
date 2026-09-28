@@ -23,7 +23,8 @@
   const FONT_PX = { sm: 12, md: 14, lg: 16 };
   const FONT_STACK = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   const COLOR_NAMES = ['bg', 'fg', 'muted', 'grid', 'body', 'body-2', 'vector', 'vector-2',
-    'trail', 'ke', 'pe', 'total', 'accent', 'current', 'voltage'];
+    'trail', 'ke', 'pe', 'total', 'accent', 'current', 'voltage', 'cold', 'cool', 'mild', 'warm', 'hot'];
+  const HEAT_STOPS = ['cold', 'cool', 'mild', 'warm', 'hot'];
   // Site language: Bahasa Indonesia. Every user-facing string of the runtime lives here.
   const UI = {
     play: 'Jalankan', pause: 'Jeda', reset: 'Ulang', speed: 'Kecepatan',
@@ -180,9 +181,21 @@
     };
   }
 
+  // "#rgb", "#rrggbb" or "rgb(a)(…)" → [r, g, b] in 0…255.
+  function parseRGB(str) {
+    const s = String(str).trim();
+    if (s[0] === '#') {
+      const h = s.length === 4 ? s.slice(1).split('').map(ch => ch + ch).join('') : s.slice(1, 7);
+      return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) || 0);
+    }
+    const m = s.match(/[\d.]+/g) || [];
+    return [0, 1, 2].map(i => +m[i] || 0);
+  }
+
   function makeDraw(ctx, v) {
     const X = v.toX, Y = v.toY;
     const c = name => v.colors[name] || name;
+    let heatRGB = null;                                    // parsed once per view
     function pen(color, w) {
       ctx.strokeStyle = c(color); ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     }
@@ -365,6 +378,60 @@
           ctx.fillStyle = c(it.color); ctx.fillRect(x + 0.5, top + 0.5 + H - h, barW, h);
           ctx.fillStyle = c('muted'); richText(ctx, it.label, x + barW / 2, top + H + 4, 'center');
         });
+      },
+      // Temperature colour for f = 0 (cold) … 1 (hot), interpolated through the palette's heat
+      // stops. Returns a colour usable wherever a palette name is accepted.
+      heat(f) {
+        if (!heatRGB) heatRGB = HEAT_STOPS.map(n => parseRGB(c(n)));
+        const t = Math.max(0, Math.min(1, isFinite(f) ? f : 0)) * (heatRGB.length - 1);
+        const i = Math.min(heatRGB.length - 2, Math.floor(t)), u = t - i, a = heatRGB[i], b = heatRGB[i + 1];
+        return `rgb(${[0, 1, 2].map(k => Math.round(a[k] + (b[k] - a[k]) * u)).join(',')})`;
+      },
+      // Physically defined colour only (blackbody, spectral colour); r, g, b in 0…1.
+      // Everything else uses palette names.
+      rgb(r, g, b) {
+        const q = x => Math.round(255 * Math.max(0, Math.min(1, isFinite(x) ? x : 0)));
+        return `rgb(${q(r)},${q(g)},${q(b)})`;
+      },
+      // Inset x–y plot in a world-space box { x, y, w, h } (bottom-left corner, metres).
+      // o: { x: [min, max], y: [min, max], xlabel, ylabel, xticks: [values], yticks: [values],
+      //      fmt: v => string for tick labels }. Draws the axes and labels, returns data→world
+      // mappers plus line/fill/dot/vline/hline that draw in data units, clipped to the box.
+      plot(box, o = {}) {
+        const [x0, x1] = o.x || [0, 1], [y0, y1] = o.y || [0, 1];
+        const PX = X_ => (X_ - x0) / ((x1 - x0) || 1), PY = Y_ => (Y_ - y0) / ((y1 - y0) || 1);
+        const wx = u => box.x + PX(u) * box.w, wy = u => box.y + PY(u) * box.h;
+        const px = n => n / v.scale;                        // CSS px → metres
+        const f = o.fmt || (t => String(+t.toPrecision(3)));
+        const self = this;
+        function clipped(fn) {
+          ctx.save(); ctx.beginPath();
+          ctx.rect(X(box.x), Y(box.y + box.h), box.w * v.scale, box.h * v.scale); ctx.clip();
+          fn(); ctx.restore();
+        }
+        (o.xticks || []).forEach(t => {
+          if (t < Math.min(x0, x1) || t > Math.max(x0, x1)) return;
+          self.line(wx(t), box.y, wx(t), box.y + box.h, 'grid', 1);
+          self.text(wx(t), box.y - px(9), f(t), 'muted', 'sm');
+        });
+        (o.yticks || []).forEach(t => {
+          if (t < Math.min(y0, y1) || t > Math.max(y0, y1)) return;
+          self.line(box.x, wy(t), box.x + box.w, wy(t), 'grid', 1);
+          self.text(box.x - px(4), wy(t), f(t), 'muted', 'sm', 'right');
+        });
+        self.line(box.x, box.y, box.x + box.w, box.y, 'muted', 1);
+        self.line(box.x, box.y, box.x, box.y + box.h, 'muted', 1);
+        if (o.xlabel) self.text(box.x + box.w, box.y - px(o.xticks ? 24 : 10), o.xlabel, 'muted', 'sm', 'right');
+        if (o.ylabel) self.text(box.x + px(4), box.y + box.h + px(10), o.ylabel, 'muted', 'sm', 'left');
+        const map = pts => pts.map(([a, b]) => [wx(a), wy(b)]);
+        return {
+          X: wx, Y: wy,
+          line(pts, color = 'body', w = 2) { clipped(() => self.polyline(map(pts), color, w)); },
+          fill(pts, color = 'trail', outline = null) { clipped(() => self.polygon(map(pts), color, outline)); },
+          dot(a, b, r = 4, color = 'body') { clipped(() => self.dot(wx(a), wy(b), r, color)); },
+          vline(a, color = 'muted', w = 1) { clipped(() => self.line(wx(a), box.y, wx(a), box.y + box.h, color, w)); },
+          hline(b, color = 'muted', w = 1) { clipped(() => self.line(box.x, wy(b), box.x + box.w, wy(b), color, w)); }
+        };
       }
     };
   }
